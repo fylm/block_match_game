@@ -5,7 +5,6 @@ import ItemShop from './components/ItemShop';
 import Leaderboard from './components/Leaderboard';
 import TestValidator from './components/TestValidator';
 import SettingsPage from './components/SettingsPage';
-import { Button, Dialog } from './components/ui/index';
 import { ConfigProvider } from 'antd-mobile';
 
 // 设置图标SVG组件
@@ -15,12 +14,42 @@ const SettingsIcon = () => (
   </svg>
 );
 
+// 游戏图标SVG组件
+const GameIcon = () => (
+  <svg className="nav-icon game-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
+// 商店图标SVG组件
+const ShopIcon = () => (
+  <svg className="nav-icon shop-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>
+);
+
+// 排行榜图标SVG组件
+const LeaderboardIcon = () => (
+  <svg className="nav-icon leaderboard-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/>
+  </svg>
+);
+
+// 菜单图标SVG组件
+const MenuIcon = () => (
+  <svg className="menu-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>
+);
+
 function App() {
   const [score, setScore] = useState<number>(0);
   const [energy, setEnergy] = useState<number>(0);
+  const [moves, setMoves] = useState<number>(20);
+  const [combo, setCombo] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'leaderboard' | 'test' | 'settings'>('game');
   const [isTestMode, setIsTestMode] = useState<boolean>(false);
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [navMenuOpen, setNavMenuOpen] = useState<boolean>(false);
 
   // 检测是否为移动设备
   const [isMobile, setIsMobile] = useState<boolean>(false);
@@ -48,6 +77,16 @@ function App() {
     setEnergy(newEnergy);
   };
 
+  // 处理步数变化
+  const handleMovesChange = (newMoves: number) => {
+    setMoves(newMoves);
+  };
+
+  // 处理连击变化
+  const handleComboChange = (newCombo: number) => {
+    setCombo(newCombo);
+  };
+
   // 切换测试模式
   const toggleTestMode = () => {
     setIsTestMode(!isTestMode);
@@ -57,6 +96,29 @@ function App() {
   // 打开设置页面
   const openSettings = () => {
     setActiveTab('settings');
+    setNavMenuOpen(false);
+  };
+
+  // 切换导航菜单
+  const toggleNavMenu = () => {
+    setNavMenuOpen(!navMenuOpen);
+  };
+
+  // 切换标签页
+  const switchTab = (tab: 'game' | 'shop' | 'leaderboard' | 'test' | 'settings') => {
+    setActiveTab(tab);
+    setNavMenuOpen(false);
+  };
+
+  // 重新开始游戏
+  const handleRestart = () => {
+    // 游戏重置逻辑将在GameBoard组件中处理
+    setActiveTab('game');
+  };
+
+  // 使用能量爆发
+  const handleEnergyBurst = () => {
+    // 能量爆发逻辑将在GameBoard组件中处理
   };
 
   return (
@@ -64,15 +126,6 @@ function App() {
       <div className="app-container">
         <header className="app-header">
           <h1>方块连连消</h1>
-          <div className="header-actions">
-            <button 
-              className="settings-button"
-              onClick={openSettings}
-              aria-label="设置"
-            >
-              <SettingsIcon />
-            </button>
-          </div>
         </header>
 
         <main className="app-content">
@@ -82,6 +135,7 @@ function App() {
               cols={8} 
               onScoreChange={handleScoreChange}
               onEnergyChange={handleEnergyChange}
+              onOpenSettings={openSettings}
             />
           )}
           
@@ -100,48 +154,71 @@ function App() {
           {activeTab === 'settings' && (
             <SettingsPage 
               score={score}
+              energy={energy}
+              moves={moves}
+              combo={combo}
               onBack={() => setActiveTab('game')}
-              onRestart={() => {
-                // 重置游戏逻辑将在GameBoard组件中处理
-                setActiveTab('game');
-              }}
+              onRestart={handleRestart}
+              onEnergyBurst={handleEnergyBurst}
               isTestMode={isTestMode}
               toggleTestMode={toggleTestMode}
             />
           )}
         </main>
 
-        <footer className="app-footer">
-          <nav className="app-nav">
-            <Button 
-              variant={activeTab === 'game' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('game')}
-              className="nav-button"
-            >
-              游戏
-            </Button>
-            
-            <Button 
-              variant={activeTab === 'shop' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('shop')}
-              className="nav-button"
-            >
-              商店
-            </Button>
-            
-            <Button 
-              variant={activeTab === 'leaderboard' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('leaderboard')}
-              className="nav-button"
-            >
-              排行榜
-            </Button>
-          </nav>
+        {/* 悬浮导航菜单按钮 */}
+        <div className="floating-nav">
+          <button 
+            className="floating-nav-button"
+            onClick={toggleNavMenu}
+            aria-label="导航菜单"
+          >
+            <MenuIcon />
+          </button>
           
-          <div className="app-version">
-            <span>版本: 1.0.2</span>
+          {/* 导航菜单 */}
+          <div className={`nav-menu ${navMenuOpen ? 'open' : ''}`}>
+            <button 
+              className={`nav-menu-item ${activeTab === 'game' ? 'active' : ''}`}
+              onClick={() => switchTab('game')}
+            >
+              <GameIcon />
+              <span>游戏</span>
+            </button>
+            
+            <button 
+              className={`nav-menu-item ${activeTab === 'shop' ? 'active' : ''}`}
+              onClick={() => switchTab('shop')}
+            >
+              <ShopIcon />
+              <span>商店</span>
+            </button>
+            
+            <button 
+              className={`nav-menu-item ${activeTab === 'leaderboard' ? 'active' : ''}`}
+              onClick={() => switchTab('leaderboard')}
+            >
+              <LeaderboardIcon />
+              <span>排行榜</span>
+            </button>
+            
+            <button 
+              className={`nav-menu-item ${activeTab === 'settings' ? 'active' : ''}`}
+              onClick={openSettings}
+            >
+              <SettingsIcon />
+              <span>设置</span>
+            </button>
           </div>
-        </footer>
+        </div>
+        
+        {/* 导航菜单背景遮罩 */}
+        {navMenuOpen && (
+          <div 
+            className="nav-menu-overlay"
+            onClick={toggleNavMenu}
+          />
+        )}
         
         {/* 移动端设备提示 */}
         {isMobile && (
@@ -149,6 +226,10 @@ function App() {
             已优化移动端体验
           </div>
         )}
+        
+        <div className="app-version">
+          <span>版本: 1.0.3</span>
+        </div>
       </div>
     </ConfigProvider>
   );

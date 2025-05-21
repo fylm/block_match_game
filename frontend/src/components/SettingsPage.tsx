@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/SettingsPage.css';
+import { Tabs } from 'antd-mobile';
 
 // 设置页面组件
 interface SettingsPageProps {
   score: number;
+  energy: number;
+  moves: number;
+  combo: number;
   onBack: () => void;
   onRestart: () => void;
+  onEnergyBurst: () => void;
   isTestMode: boolean;
   toggleTestMode: () => void;
 }
@@ -21,6 +26,13 @@ const BackIcon = () => (
 const RestartIcon = () => (
   <svg className="restart-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
     <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+  </svg>
+);
+
+// 能量图标SVG组件
+const EnergyIcon = () => (
+  <svg className="energy-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
   </svg>
 );
 
@@ -52,17 +64,43 @@ const ThemeIcon = () => (
   </svg>
 );
 
+// 游戏图标SVG组件
+const GameIcon = () => (
+  <svg className="game-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M21 6H3c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-10 7H8v3H6v-3H3v-2h3V8h2v3h3v2zm4.5 2c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm4-3c-.83 0-1.5-.67-1.5-1.5S18.67 9 19.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+  </svg>
+);
+
+// 商店图标SVG组件
+const ShopIcon = () => (
+  <svg className="shop-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>
+);
+
+// 排行榜图标SVG组件
+const LeaderboardIcon = () => (
+  <svg className="leaderboard-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.5 21H2V9h5.5v12zm7.25-18h-5.5v18h5.5V3zM22 11h-5.5v10H22V11z"/>
+  </svg>
+);
+
 const SettingsPage: React.FC<SettingsPageProps> = ({
   score,
+  energy,
+  moves,
+  combo,
   onBack,
   onRestart,
+  onEnergyBurst,
   isTestMode,
   toggleTestMode
 }) => {
   // 设置状态
-  const [soundEnabled, setSoundEnabled] = React.useState<boolean>(true);
-  const [vibrationEnabled, setVibrationEnabled] = React.useState<boolean>(true);
-  const [theme, setTheme] = React.useState<string>('默认');
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState<boolean>(true);
+  const [theme, setTheme] = useState<string>('默认');
+  const [activeTab, setActiveTab] = useState<string>('game');
   
   // 切换声音设置
   const toggleSound = () => {
@@ -78,6 +116,11 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
   const changeTheme = (newTheme: string) => {
     setTheme(newTheme);
   };
+
+  // 切换标签页
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+  };
   
   return (
     <div className="settings-page">
@@ -89,105 +132,164 @@ const SettingsPage: React.FC<SettingsPageProps> = ({
       </div>
       
       <div className="settings-content">
-        <div className="settings-section">
-          <h3 className="settings-section-title">游戏信息</h3>
-          <div className="settings-info-card">
-            <div className="info-item">
-              <span className="info-label">当前分数</span>
-              <span className="info-value">{score}</span>
+        <Tabs 
+          activeKey={activeTab} 
+          onChange={handleTabChange}
+          className="settings-tabs"
+        >
+          <Tabs.Tab title="游戏" key="game">
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏信息</h3>
+              <div className="settings-info-card">
+                <div className="info-item">
+                  <span className="info-label">当前分数</span>
+                  <span className="info-value">{score}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">剩余步数</span>
+                  <span className="info-value">{moves}</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">当前连击</span>
+                  <span className="info-value">{combo}x</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">最高分数</span>
+                  <span className="info-value">{localStorage.getItem('highScore') || '0'}</span>
+                </div>
+              </div>
             </div>
-            <div className="info-item">
-              <span className="info-label">最高分数</span>
-              <span className="info-value">{localStorage.getItem('highScore') || '0'}</span>
+            
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏操作</h3>
+              <div className="settings-button-group">
+                <button className="settings-action-button" onClick={onRestart}>
+                  <RestartIcon />
+                  <span>重新开始</span>
+                </button>
+                
+                <button 
+                  className={`settings-action-button ${energy < 100 ? 'disabled' : 'energy-ready'}`} 
+                  onClick={onEnergyBurst}
+                  disabled={energy < 100}
+                >
+                  <EnergyIcon />
+                  <span>能量爆发 {energy < 100 ? `(${energy}%)` : ''}</span>
+                </button>
+              </div>
             </div>
-            <div className="info-item">
-              <span className="info-label">游戏版本</span>
-              <span className="info-value">1.0.2</span>
+            
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏规则</h3>
+              <div className="settings-rule-card">
+                <p>• 滑动连接3个或更多相同颜色的方块来消除</p>
+                <p>• 特殊方块有额外效果：💣爆炸、⚡闪电、🌈彩虹</p>
+                <p>• 连击可以获得更多分数和能量</p>
+                <p>• 能量满时可以使用能量爆发清除大量方块</p>
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="settings-section">
-          <h3 className="settings-section-title">游戏操作</h3>
-          <div className="settings-button-group">
-            <button className="settings-action-button" onClick={onRestart}>
-              <RestartIcon />
-              <span>重新开始</span>
-            </button>
-          </div>
-        </div>
-        
-        <div className="settings-section">
-          <h3 className="settings-section-title">游戏设置</h3>
-          <div className="settings-option">
-            <div className="option-info">
-              <SoundIcon />
-              <span className="option-label">游戏音效</span>
-            </div>
-            <div className="toggle-switch">
-              <input 
-                type="checkbox" 
-                id="sound-toggle" 
-                checked={soundEnabled}
-                onChange={toggleSound}
-              />
-              <label htmlFor="sound-toggle"></label>
-            </div>
-          </div>
+          </Tabs.Tab>
           
-          <div className="settings-option">
-            <div className="option-info">
-              <VibrationIcon />
-              <span className="option-label">振动反馈</span>
+          <Tabs.Tab title="设置" key="settings">
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏设置</h3>
+              <div className="settings-option">
+                <div className="option-info">
+                  <SoundIcon />
+                  <span className="option-label">游戏音效</span>
+                </div>
+                <div className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    id="sound-toggle" 
+                    checked={soundEnabled}
+                    onChange={toggleSound}
+                  />
+                  <label htmlFor="sound-toggle"></label>
+                </div>
+              </div>
+              
+              <div className="settings-option">
+                <div className="option-info">
+                  <VibrationIcon />
+                  <span className="option-label">振动反馈</span>
+                </div>
+                <div className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    id="vibration-toggle" 
+                    checked={vibrationEnabled}
+                    onChange={toggleVibration}
+                  />
+                  <label htmlFor="vibration-toggle"></label>
+                </div>
+              </div>
+              
+              <div className="settings-option">
+                <div className="option-info">
+                  <ThemeIcon />
+                  <span className="option-label">游戏主题</span>
+                </div>
+                <div className="theme-selector">
+                  <select 
+                    value={theme}
+                    onChange={(e) => changeTheme(e.target.value)}
+                  >
+                    <option value="默认">默认</option>
+                    <option value="暗黑">暗黑</option>
+                    <option value="明亮">明亮</option>
+                    <option value="彩虹">彩虹</option>
+                  </select>
+                </div>
+              </div>
             </div>
-            <div className="toggle-switch">
-              <input 
-                type="checkbox" 
-                id="vibration-toggle" 
-                checked={vibrationEnabled}
-                onChange={toggleVibration}
-              />
-              <label htmlFor="vibration-toggle"></label>
+            
+            <div className="settings-section">
+              <h3 className="settings-section-title">开发者选项</h3>
+              <div className="settings-option">
+                <div className="option-info">
+                  <TestIcon />
+                  <span className="option-label">测试模式</span>
+                </div>
+                <div className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    id="test-toggle" 
+                    checked={isTestMode}
+                    onChange={toggleTestMode}
+                  />
+                  <label htmlFor="test-toggle"></label>
+                </div>
+              </div>
+              <div className="settings-option">
+                <div className="option-info">
+                  <span className="option-label">游戏版本</span>
+                </div>
+                <span className="option-value">1.0.3</span>
+              </div>
             </div>
-          </div>
+          </Tabs.Tab>
           
-          <div className="settings-option">
-            <div className="option-info">
-              <ThemeIcon />
-              <span className="option-label">游戏主题</span>
+          <Tabs.Tab title="导航" key="navigation">
+            <div className="settings-section">
+              <h3 className="settings-section-title">快速导航</h3>
+              <div className="navigation-buttons">
+                <button className="navigation-button" onClick={() => onBack()}>
+                  <GameIcon />
+                  <span>游戏</span>
+                </button>
+                <button className="navigation-button">
+                  <ShopIcon />
+                  <span>商店</span>
+                </button>
+                <button className="navigation-button">
+                  <LeaderboardIcon />
+                  <span>排行榜</span>
+                </button>
+              </div>
             </div>
-            <div className="theme-selector">
-              <select 
-                value={theme}
-                onChange={(e) => changeTheme(e.target.value)}
-              >
-                <option value="默认">默认</option>
-                <option value="暗黑">暗黑</option>
-                <option value="明亮">明亮</option>
-                <option value="彩虹">彩虹</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        
-        <div className="settings-section">
-          <h3 className="settings-section-title">开发者选项</h3>
-          <div className="settings-option">
-            <div className="option-info">
-              <TestIcon />
-              <span className="option-label">测试模式</span>
-            </div>
-            <div className="toggle-switch">
-              <input 
-                type="checkbox" 
-                id="test-toggle" 
-                checked={isTestMode}
-                onChange={toggleTestMode}
-              />
-              <label htmlFor="test-toggle"></label>
-            </div>
-          </div>
-        </div>
+          </Tabs.Tab>
+        </Tabs>
       </div>
     </div>
   );

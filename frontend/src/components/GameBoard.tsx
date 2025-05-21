@@ -10,10 +10,10 @@ const SettingsIcon = () => (
   </svg>
 );
 
-// 关闭图标SVG组件
-const CloseIcon = () => (
-  <svg className="close-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+// 能量图标SVG组件
+const EnergyIcon = () => (
+  <svg className="energy-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7 2v11h3v9l7-12h-4l4-8z"/>
   </svg>
 );
 
@@ -22,6 +22,7 @@ interface GameBoardProps {
   cols: number;
   onScoreChange: (score: number) => void;
   onEnergyChange: (energy: number) => void;
+  onOpenSettings: () => void;
 }
 
 interface Block {
@@ -35,7 +36,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
   rows = 8, 
   cols = 8, 
   onScoreChange, 
-  onEnergyChange 
+  onEnergyChange,
+  onOpenSettings
 }) => {
   const [blocks, setBlocks] = useState<Block[][]>([]);
   const [score, setScore] = useState<number>(0);
@@ -49,7 +51,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [specialBlocks, setSpecialBlocks] = useState<{row: number, col: number, type: string}[]>([]);
   const [showHapticFeedback, setShowHapticFeedback] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
-  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
+  const [energyBurstReady, setEnergyBurstReady] = useState<boolean>(false);
   
   const boardRef = useRef<HTMLDivElement>(null);
   const blockSize = useRef<number>(60); // 默认方块大小，会根据屏幕自适应调整
@@ -100,11 +102,20 @@ const GameBoard: React.FC<GameBoardProps> = ({
   // 监听能量变化
   useEffect(() => {
     onEnergyChange(energy);
+    
+    // 当能量达到100%时，显示能量爆发按钮
+    setEnergyBurstReady(energy >= 100);
   }, [energy, onEnergyChange]);
 
   // 监听分数变化
   useEffect(() => {
     onScoreChange(score);
+    
+    // 更新最高分
+    const highScore = localStorage.getItem('highScore');
+    if (!highScore || score > parseInt(highScore)) {
+      localStorage.setItem('highScore', score.toString());
+    }
   }, [score, onScoreChange]);
 
   // 初始化游戏板
@@ -146,6 +157,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     setSelectedBlocks([]);
     setIsSwipeEnabled(true);
     setIsAnimating(false);
+    setEnergyBurstReady(false);
   };
 
   // 创建随机方块
@@ -337,6 +349,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
     if (newMoves <= 0) {
       setGameOver(true);
       setIsSwipeEnabled(false);
+      
+      // 显示游戏结束弹窗
+      setTimeout(() => {
+        showGameOverModal();
+      }, 1000);
     }
     
     // 重置选择
@@ -404,11 +421,18 @@ const GameBoard: React.FC<GameBoardProps> = ({
     
     // 重置能量
     setEnergy(0);
+    setEnergyBurstReady(false);
     
     // 延迟重置动画状态
     setTimeout(() => {
       setIsAnimating(false);
     }, 800);
+  };
+
+  // 显示游戏结束弹窗
+  const showGameOverModal = () => {
+    // 游戏结束弹窗逻辑
+    // 这里可以使用Dialog组件或自定义弹窗
   };
 
   // 重新开始游戏
@@ -420,21 +444,8 @@ const GameBoard: React.FC<GameBoardProps> = ({
       duration: 1000,
     });
     
-    // 关闭设置菜单
-    setSettingsOpen(false);
-    
     // 初始化游戏
     initializeBoard();
-  };
-
-  // 打开设置菜单
-  const openSettings = () => {
-    setSettingsOpen(true);
-  };
-
-  // 关闭设置菜单
-  const closeSettings = () => {
-    setSettingsOpen(false);
   };
 
   // 渲染方块
@@ -472,172 +483,83 @@ const GameBoard: React.FC<GameBoardProps> = ({
     );
   };
 
-  // 渲染设置菜单
-  const renderSettingsMenu = () => {
-    return (
-      <>
-        <div 
-          className={`settings-overlay ${settingsOpen ? 'open' : ''}`}
-          onClick={closeSettings}
-        />
-        <div className={`settings-menu ${settingsOpen ? 'open' : ''}`}>
-          <div className="settings-header">
-            <h2 className="settings-title">游戏设置</h2>
-            <button className="close-settings" onClick={closeSettings}>
-              <CloseIcon />
-            </button>
-          </div>
-          <div className="settings-content">
-            <div className="settings-section">
-              <h3 className="settings-section-title">游戏信息</h3>
-              <div className="settings-option">
-                <span className="settings-option-label">当前分数</span>
-                <span className="settings-option-value">{score}</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">剩余步数</span>
-                <span className="settings-option-value">{moves}</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">当前连击</span>
-                <span className="settings-option-value">{combo}x</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">能量值</span>
-                <span className="settings-option-value">{energy}%</span>
-              </div>
-            </div>
-            
-            <div className="settings-section">
-              <h3 className="settings-section-title">游戏操作</h3>
-              <div className="settings-button-group">
-                <button 
-                  className="settings-button-item"
-                  onClick={restartGame}
-                  disabled={isAnimating}
-                >
-                  重新开始
-                </button>
-                <button 
-                  className={`settings-button-item ${energy < 100 ? 'secondary' : ''}`}
-                  onClick={useEnergyBurst}
-                  disabled={energy < 100 || isAnimating}
-                >
-                  使用能量爆发 {energy < 100 ? `(${energy}%)` : ''}
-                </button>
-              </div>
-            </div>
-            
-            <div className="settings-section">
-              <h3 className="settings-section-title">游戏规则</h3>
-              <div className="settings-option">
-                <span className="settings-option-label">滑动连接3个或更多相同颜色的方块来消除</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">特殊方块有额外效果</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">连击可以获得更多分数</span>
-              </div>
-              <div className="settings-option">
-                <span className="settings-option-label">能量满后可以触发能量爆发</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  };
-
   return (
     <div className="game-container">
-      {/* 顶部栏 - 只保留设置按钮 */}
       <div className="game-header">
         <button 
           className="settings-button"
-          onClick={openSettings}
+          onClick={onOpenSettings}
           aria-label="设置"
         >
           <SettingsIcon />
         </button>
       </div>
-      
-      {/* 游戏信息区域 */}
+
       <div className="game-info">
         <div className="score">
-          分数
+          <span className="info-label">分数</span>
           <span>{score}</span>
         </div>
         <div className="moves">
-          步数
+          <span className="info-label">步数</span>
           <span>{moves}</span>
         </div>
         <div className="combo">
-          连击
+          <span className="info-label">连击</span>
           <span>{combo}x</span>
         </div>
       </div>
-      
-      {/* 能量条 */}
+
       <div className="energy-bar-container">
         <div 
-          className="energy-bar"
+          className="energy-bar" 
           style={{ width: `${energy}%` }}
         />
-        <button 
-          className={`energy-burst-button ${energy < 100 ? 'disabled' : ''}`}
-          onClick={useEnergyBurst}
-          disabled={energy < 100 || isAnimating}
-        >
-          能量爆发!
-        </button>
-      </div>
-      
-      {/* 游戏板 */}
-      <div 
-        ref={boardRef}
-        className="game-board"
-        style={{ 
-          gridTemplateColumns: `repeat(${cols}, 1fr)`,
-          gridTemplateRows: `repeat(${rows}, 1fr)`
-        }}
-      >
-        {/* 渲染方块 */}
-        {blocks.map((row, rowIndex) => 
-          row.map((block, colIndex) => 
-            renderBlock(block, rowIndex, colIndex)
-          )
+        {energyBurstReady && (
+          <button 
+            className="energy-burst-button"
+            onClick={useEnergyBurst}
+            disabled={isAnimating}
+          >
+            <EnergyIcon />
+          </button>
         )}
+      </div>
+
+      <div 
+        className="game-board"
+        ref={boardRef}
+      >
+        {blocks.map((row, rowIndex) => (
+          row.map((block, colIndex) => (
+            renderBlock(block, rowIndex, colIndex)
+          ))
+        ))}
         
-        {/* 滑动连接组件 */}
-        <SwipeConnector
+        <SwipeConnector 
           rows={rows}
           cols={cols}
+          blockColors={blockColors}
           blockSize={blockSize.current}
           onPathComplete={handlePathComplete}
-          isEnabled={isSwipeEnabled && !gameOver && !isAnimating}
-          minPathLength={3}
-          blockColors={blockColors}
+          isEnabled={isSwipeEnabled && !isAnimating && !gameOver}
           specialBlocks={specialBlocks}
         />
       </div>
-      
-      {/* 设置菜单 */}
-      {renderSettingsMenu()}
-      
-      {/* 游戏结束弹窗 */}
+
+      {showHapticFeedback && (
+        <div className="haptic-feedback" />
+      )}
+
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
-            <h2>游戏结束!</h2>
+            <h2>游戏结束</h2>
             <p>最终得分: {score}</p>
             <button onClick={restartGame}>再来一局</button>
           </div>
         </div>
       )}
-      
-      {/* 触感反馈视觉效果 */}
-      {showHapticFeedback && <div className="haptic-feedback" />}
     </div>
   );
 };

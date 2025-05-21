@@ -1,243 +1,253 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/core/SwipeConnector.css';
-import { Toast } from 'antd-mobile';
 
 interface SwipeConnectorProps {
   rows: number;
   cols: number;
+  blockColors: string[][];
   blockSize: number;
   onPathComplete: (path: {row: number, col: number}[]) => void;
   isEnabled: boolean;
-  minPathLength?: number;
-  blockColors: string[][];
   specialBlocks?: {row: number, col: number, type: string}[];
 }
 
 const SwipeConnector: React.FC<SwipeConnectorProps> = ({
   rows,
   cols,
+  blockColors,
   blockSize,
   onPathComplete,
   isEnabled,
-  minPathLength = 3,
-  blockColors,
   specialBlocks = []
 }) => {
-  // 当前路径状态
-  const [currentPath, setCurrentPath] = useState<{row: number, col: number}[]>([]);
-  // 触摸状态
-  const [isTouching, setIsTouching] = useState(false);
-  // 当前触摸位置（用于绘制指示器）
-  const [touchPosition, setTouchPosition] = useState<{x: number, y: number} | null>(null);
-  // 是否显示错误提示
-  const [showError, setShowError] = useState(false);
+  const [path, setPath] = useState<{row: number, col: number}[]>([]);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [touchIndicator, setTouchIndicator] = useState<{x: number, y: number, visible: boolean}>({
+    x: 0,
+    y: 0,
+    visible: false
+  });
+  const [connectionLines, setConnectionLines] = useState<{
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    angle: number,
+    length: number,
+    color: string
+  }[]>([]);
   
-  // 引用容器元素
-  const containerRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const lastBlockRef = useRef<{row: number, col: number} | null>(null);
   
-  // 设置CSS变量用于响应式布局
-  useEffect(() => {
-    if (containerRef.current) {
-      containerRef.current.style.setProperty('--rows', rows.toString());
-      containerRef.current.style.setProperty('--cols', cols.toString());
-      containerRef.current.style.setProperty('--block-size', `${blockSize}px`);
-    }
-  }, [rows, cols, blockSize]);
+  // 清除路径
+  const clearPath = () => {
+    setPath([]);
+    setConnectionLines([]);
+    lastBlockRef.current = null;
+  };
   
-  // 处理触摸开始
-  const handleTouchStart = (e: React.TouchEvent, row: number, col: number) => {
+  // 处理触摸/鼠标开始
+  const handleStart = (e: React.TouchEvent | React.MouseEvent, row: number, col: number) => {
     if (!isEnabled) return;
     
-    // 阻止默认行为
     e.preventDefault();
     
-    // 开始新路径
-    setCurrentPath([{row, col}]);
-    setIsTouching(true);
+    // 获取触摸/鼠标位置
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
     
-    // 记录触摸位置
-    const touch = e.touches[0];
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (rect) {
-      setTouchPosition({
-        x: touch.clientX - rect.left,
-        y: touch.clientY - rect.top
-      });
-    }
-    
-    // 触感反馈
-    if (navigator.vibrate) {
-      navigator.vibrate(10);
-    }
-  };
-  
-  // 处理触摸移动
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isEnabled || !isTouching || !containerRef.current) return;
-    
-    // 阻止默认行为
-    e.preventDefault();
-    
-    const touch = e.touches[0];
-    const rect = containerRef.current.getBoundingClientRect();
-    
-    // 更新触摸位置指示器
-    setTouchPosition({
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
+    // 显示触摸指示器
+    setTouchIndicator({
+      x: clientX,
+      y: clientY,
+      visible: true
     });
     
-    // 计算当前触摸的方块坐标
-    const col = Math.floor((touch.clientX - rect.left) / (rect.width / cols));
-    const row = Math.floor((touch.clientY - rect.top) / (rect.height / rows));
+    // 开始新路径
+    setIsDragging(true);
+    setPath([{row, col}]);
+    lastBlockRef.current = {row, col};
+  };
+  
+  // 处理触摸/鼠标移动
+  const handleMove = (e: React.TouchEvent | React.MouseEvent) => {
+    if (!isDragging || !isEnabled || !boardRef.current) return;
     
-    // 确保坐标在有效范围内
+    e.preventDefault();
+    
+    // 获取触摸/鼠标位置
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    
+    // 更新触摸指示器位置
+    setTouchIndicator({
+      x: clientX,
+      y: clientY,
+      visible: true
+    });
+    
+    // 获取board的位置信息
+    const boardRect = boardRef.current.getBoundingClientRect();
+    
+    // 计算相对于board的位置
+    const relativeX = clientX - boardRect.left;
+    const relativeY = clientY - boardRect.top;
+    
+    // 计算当前触摸的方块行列
+    const col = Math.floor(relativeX / (blockSize + 8)); // 8是间隙
+    const row = Math.floor(relativeY / (blockSize + 8));
+    
+    // 检查是否在有效范围内
     if (row >= 0 && row < rows && col >= 0 && col < cols) {
-      // 获取最后一个方块
-      const lastBlock = currentPath[currentPath.length - 1];
-      
-      // 如果触摸到了新方块
-      if (lastBlock.row !== row || lastBlock.col !== col) {
-        // 检查是否相邻
-        const isAdjacent = Math.abs(row - lastBlock.row) <= 1 && 
-                          Math.abs(col - lastBlock.col) <= 1;
-        
-        // 检查颜色是否匹配
-        const isColorMatch = blockColors[row][col] === blockColors[lastBlock.row][lastBlock.col];
-        
-        // 检查是否是特殊方块（彩虹方块可以匹配任何颜色）
-        const isCurrentSpecial = specialBlocks.some(
-          block => block.row === row && block.col === col && block.type === 'rainbow'
+      // 检查是否与上一个方块相邻
+      const lastBlock = lastBlockRef.current;
+      if (lastBlock) {
+        const isAdjacent = (
+          (Math.abs(row - lastBlock.row) <= 1 && Math.abs(col - lastBlock.col) <= 1) &&
+          !(row === lastBlock.row && col === lastBlock.col)
         );
-        const isLastSpecial = specialBlocks.some(
-          block => block.row === lastBlock.row && block.col === lastBlock.col && block.type === 'rainbow'
-        );
+        
+        // 检查是否与路径中的第一个方块颜色相同
+        const isSameColor = blockColors[row][col] === blockColors[path[0].row][path[0].col];
         
         // 检查是否已经在路径中
-        const isAlreadyInPath = currentPath.some(block => block.row === row && block.col === col);
+        const isInPath = path.some(p => p.row === row && p.col === col);
         
-        // 如果是相邻的、颜色匹配的、未在路径中的方块，添加到路径
-        if (isAdjacent && (isColorMatch || isCurrentSpecial || isLastSpecial) && !isAlreadyInPath) {
-          setCurrentPath([...currentPath, {row, col}]);
-          setShowError(false);
+        // 如果相邻、颜色相同且不在路径中，添加到路径
+        if (isAdjacent && isSameColor && !isInPath) {
+          // 添加到路径
+          const newPath = [...path, {row, col}];
+          setPath(newPath);
           
-          // 轻微触感反馈
-          if (navigator.vibrate) {
-            navigator.vibrate(5);
-          }
-        } 
-        // 如果是路径中倒数第二个方块，允许返回（撤销最后一步）
-        else if (currentPath.length > 1 && 
-                currentPath[currentPath.length - 2].row === row && 
-                currentPath[currentPath.length - 2].col === col) {
-          setCurrentPath(currentPath.slice(0, -1));
-          setShowError(false);
+          // 更新连接线
+          updateConnectionLines(newPath);
+          
+          // 更新最后一个方块
+          lastBlockRef.current = {row, col};
         }
-        // 如果是无效移动，显示错误提示
-        else if (isAdjacent && !isAlreadyInPath) {
-          setShowError(true);
+        // 如果是路径中的倒数第二个方块，允许返回（撤销最后一步）
+        else if (path.length >= 2 && row === path[path.length - 2].row && col === path[path.length - 2].col) {
+          // 移除路径中的最后一个方块
+          const newPath = path.slice(0, -1);
+          setPath(newPath);
           
-          // 错误触感反馈
-          if (navigator.vibrate) {
-            navigator.vibrate([20, 30, 20]);
-          }
+          // 更新连接线
+          updateConnectionLines(newPath);
           
-          setTimeout(() => setShowError(false), 500);
+          // 更新最后一个方块
+          lastBlockRef.current = {row, col};
         }
       }
     }
   };
   
-  // 处理触摸结束
-  const handleTouchEnd = () => {
-    if (!isEnabled || !isTouching) return;
+  // 处理触摸/鼠标结束
+  const handleEnd = () => {
+    if (!isDragging || !isEnabled) return;
     
-    // 如果路径长度达到最小要求，触发回调
-    if (currentPath.length >= minPathLength) {
-      onPathComplete(currentPath);
+    // 隐藏触摸指示器
+    setTouchIndicator({
+      ...touchIndicator,
+      visible: false
+    });
+    
+    // 结束拖动
+    setIsDragging(false);
+    
+    // 如果路径长度大于等于3，触发回调
+    if (path.length >= 3) {
+      onPathComplete(path);
+    }
+    
+    // 清除路径
+    clearPath();
+  };
+  
+  // 更新连接线
+  const updateConnectionLines = (currentPath: {row: number, col: number}[]) => {
+    if (currentPath.length < 2 || !boardRef.current) return;
+    
+    const boardRect = boardRef.current.getBoundingClientRect();
+    const newLines: {
+      x1: number,
+      y1: number,
+      x2: number,
+      y2: number,
+      angle: number,
+      length: number,
+      color: string
+    }[] = [];
+    
+    // 获取第一个方块的颜色
+    const pathColor = blockColors[currentPath[0].row][currentPath[0].col];
+    
+    // 为每对相邻方块创建连接线
+    for (let i = 0; i < currentPath.length - 1; i++) {
+      const current = currentPath[i];
+      const next = currentPath[i + 1];
       
-      // 成功触感反馈
-      if (navigator.vibrate) {
-        navigator.vibrate([10, 30, 10, 30, 10]);
-      }
+      // 计算方块中心位置
+      const x1 = (current.col * (blockSize + 8)) + (blockSize / 2) + 12; // 12是board的padding
+      const y1 = (current.row * (blockSize + 8)) + (blockSize / 2) + 12;
+      const x2 = (next.col * (blockSize + 8)) + (blockSize / 2) + 12;
+      const y2 = (next.row * (blockSize + 8)) + (blockSize / 2) + 12;
       
-      // 添加成功动画类
-      const pathElements = document.querySelectorAll('.path-segment');
-      pathElements.forEach((el, i) => {
-        setTimeout(() => {
-          el.classList.add('complete');
-        }, i * 50);
+      // 计算角度和长度
+      const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+      const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+      
+      // 添加连接线
+      newLines.push({
+        x1,
+        y1,
+        x2,
+        y2,
+        angle,
+        length,
+        color: pathColor
       });
-      
-      // 短暂延迟后重置路径（让动画有时间播放）
-      setTimeout(() => {
-        setCurrentPath([]);
-        setTouchPosition(null);
-        setIsTouching(false);
-      }, currentPath.length * 50 + 200);
-    } else if (currentPath.length > 0) {
-      // 路径太短，显示错误提示
-      setShowError(true);
-      
-      // 错误触感反馈
-      if (navigator.vibrate) {
-        navigator.vibrate([30, 50, 30]);
-      }
-      
-      // 显示Toast提示
-      if (currentPath.length > 1) {
-        Toast.show({
-          content: `至少需要${minPathLength}个相同颜色的方块`,
-          position: 'center',
-          duration: 1000,
-        });
-      }
-      
-      setTimeout(() => {
-        setShowError(false);
-        setCurrentPath([]);
-        setTouchPosition(null);
-        setIsTouching(false);
-      }, 500);
-    } else {
-      // 重置状态
-      setCurrentPath([]);
-      setTouchPosition(null);
-      setIsTouching(false);
     }
+    
+    setConnectionLines(newLines);
   };
   
-  // 渲染路径线段
-  const renderPathSegments = () => {
-    if (currentPath.length < 2) return null;
-    
-    return currentPath.slice(0, -1).map((startBlock, index) => {
-      const endBlock = currentPath[index + 1];
-      
-      // 计算线段起点和终点（方块中心）
-      const startX = (startBlock.col + 0.5) * (100 / cols);
-      const startY = (startBlock.row + 0.5) * (100 / rows);
-      const endX = (endBlock.col + 0.5) * (100 / cols);
-      const endY = (endBlock.row + 0.5) * (100 / rows);
-      
-      // 计算线段长度和角度
-      const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
-      const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
-      
-      // 获取线段颜色（使用方块颜色）
-      const color = blockColors[startBlock.row][startBlock.col];
+  // 渲染连接线
+  const renderConnectionLines = () => {
+    return connectionLines.map((line, index) => (
+      <div
+        key={`line-${index}`}
+        className="path-segment"
+        style={{
+          left: `${line.x1}px`,
+          top: `${line.y1}px`,
+          width: `${line.length}px`,
+          transform: `rotate(${line.angle}deg)`,
+          backgroundColor: line.color,
+          boxShadow: `0 0 10px ${line.color}`
+        }}
+      />
+    ));
+  };
+  
+  // 渲染选中方块指示器
+  const renderSelectedBlocks = () => {
+    return path.map((block, index) => {
+      // 计算方块位置
+      const left = (block.col * (blockSize + 8)) + 12; // 12是board的padding
+      const top = (block.row * (blockSize + 8)) + 12;
       
       return (
-        <div 
-          key={`segment-${index}`}
-          className={`path-segment ${showError ? 'error' : ''}`}
+        <div
+          key={`selected-${index}`}
+          className="selected-block-indicator"
           style={{
-            left: `${startX}%`,
-            top: `${startY}%`,
-            width: `${length}%`,
-            transform: `rotate(${angle}deg)`,
-            backgroundColor: color,
-            boxShadow: `0 0 8px ${color}`
+            left: `${left}px`,
+            top: `${top}px`,
+            width: `${blockSize}px`,
+            height: `${blockSize}px`,
+            borderColor: blockColors[block.row][block.col],
+            boxShadow: `0 0 10px ${blockColors[block.row][block.col]}`
           }}
         />
       );
@@ -246,93 +256,75 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
   
   // 渲染触摸指示器
   const renderTouchIndicator = () => {
-    if (!touchPosition || !isTouching) return null;
-    
-    // 如果有当前路径，使用最后一个方块的颜色
-    const color = currentPath.length > 0 
-      ? blockColors[currentPath[0].row][currentPath[0].col]
-      : '#ffffff';
+    if (!touchIndicator.visible) return null;
     
     return (
-      <div 
+      <div
         className="touch-indicator"
         style={{
-          left: `${touchPosition.x}px`,
-          top: `${touchPosition.y}px`,
-          backgroundColor: color,
-          boxShadow: `0 0 12px ${color}`
+          left: `${touchIndicator.x}px`,
+          top: `${touchIndicator.y}px`
         }}
       />
     );
   };
   
-  // 渲染选中的方块指示器 - 修复位置偏移问题
-  const renderSelectedBlocks = () => {
-    return currentPath.map((block, index) => {
-      // 计算精确的像素位置，确保选中框与方块完全对齐
-      // 使用像素单位而非百分比，确保与实际方块大小完全匹配
-      const blockGap = 8; // 方块之间的间距，与CSS中的grid-gap保持一致
-      const paddingOffset = 12; // 游戏板内边距，与CSS中的padding保持一致
-      
-      // 计算精确的像素位置
-      const exactLeft = paddingOffset + (block.col * (blockSize + blockGap));
-      const exactTop = paddingOffset + (block.row * (blockSize + blockGap));
-      
-      return (
-        <div
-          key={`selected-${index}`}
-          className={`selected-block ${showError ? 'error' : ''}`}
-          style={{
-            left: `${exactLeft}px`,
-            top: `${exactTop}px`,
-            width: `${blockSize}px`,
-            height: `${blockSize}px`,
-            borderColor: blockColors[block.row][block.col]
-          }}
-        />
-      );
-    });
-  };
-  
-  // 渲染加载状态
-  const renderLoading = () => {
-    if (isEnabled) return null;
-    
-    return (
-      <div className="swipe-connector-loading">
-        <div className="loading-spinner"></div>
-      </div>
-    );
-  };
+  // 清理函数
+  useEffect(() => {
+    return () => {
+      clearPath();
+    };
+  }, []);
   
   return (
     <div 
-      ref={containerRef}
+      ref={boardRef}
       className="swipe-connector"
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
+      onTouchMove={handleMove}
+      onMouseMove={handleMove}
+      onTouchEnd={handleEnd}
+      onMouseUp={handleEnd}
+      onMouseLeave={handleEnd}
     >
-      {/* 这里会渲染游戏方块的容器，方块由父组件提供 */}
-      {renderPathSegments()}
-      {renderSelectedBlocks()}
-      {renderTouchIndicator()}
-      {renderLoading()}
+      {/* 渲染连接线 */}
+      {renderConnectionLines()}
       
-      {/* 触摸区域覆盖层 - 用于捕获触摸事件 */}
-      <div className="touch-overlay">
-        {Array.from({ length: rows }).map((_, rowIndex) => (
-          <div key={`row-${rowIndex}`} className="touch-row">
-            {Array.from({ length: cols }).map((_, colIndex) => (
-              <div
-                key={`touch-${rowIndex}-${colIndex}`}
-                className="touch-area"
-                onTouchStart={(e) => handleTouchStart(e, rowIndex, colIndex)}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
+      {/* 渲染选中方块指示器 */}
+      {renderSelectedBlocks()}
+      
+      {/* 渲染触摸指示器 */}
+      {renderTouchIndicator()}
+      
+      {/* 渲染方块触摸区域 */}
+      {Array.from({ length: rows }).map((_, row) => (
+        Array.from({ length: cols }).map((_, col) => {
+          // 计算方块位置
+          const left = (col * (blockSize + 8)) + 12; // 12是board的padding
+          const top = (row * (blockSize + 8)) + 12;
+          
+          // 检查是否为特殊方块
+          const isSpecial = specialBlocks.some(
+            block => block.row === row && block.col === col
+          );
+          
+          return (
+            <div
+              key={`touch-${row}-${col}`}
+              className={`block-touch-area ${isSpecial ? 'special' : ''}`}
+              style={{
+                left: `${left}px`,
+                top: `${top}px`,
+                width: `${blockSize}px`,
+                height: `${blockSize}px`
+              }}
+              onTouchStart={(e) => handleStart(e, row, col)}
+              onMouseDown={(e) => handleStart(e, row, col)}
+              data-row={row}
+              data-col={col}
+            />
+          );
+        })
+      ))}
     </div>
   );
 };

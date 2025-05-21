@@ -2,22 +2,16 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 100%;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: #f8f9fa;
+  position: relative;
+  overflow: hidden;
 }
 
 .app-header {
-  background-color: transparent;
-  color: #333;
   padding: 16px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  text-align: center;
+  position: relative;
+  z-index: 5;
 }
 
 .app-header h1 {
@@ -28,9 +22,10 @@
 }
 
 .header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .settings-button {
@@ -59,92 +54,173 @@
   fill: #4a90e2;
 }
 
-.header-info {
-  display: flex;
-  gap: 16px;
-}
-
-.score-display, .energy-display {
-  font-size: 16px;
-  font-weight: 500;
-  background-color: white;
-  padding: 8px 12px;
-  border-radius: 20px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.score-display {
-  color: #4a90e2;
-}
-
-.energy-display {
-  color: #e67e22;
-}
-
-.score-icon, .energy-icon {
-  font-size: 18px;
-}
-
 .app-content {
   flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   padding: 0 16px 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* 悬浮导航菜单 */
+.floating-nav {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 100;
+}
+
+.floating-nav-button {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: #4a90e2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-tap-highlight-color: transparent;
+  z-index: 102;
+}
+
+.floating-nav-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.menu-icon {
+  width: 28px;
+  height: 28px;
+  fill: white;
+  transition: transform 0.3s ease;
+}
+
+.nav-menu {
+  position: absolute;
+  bottom: 70px;
+  right: 8px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  overflow-x: hidden;
+  gap: 12px;
+  opacity: 0;
+  transform: translateY(20px) scale(0.8);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 101;
 }
 
-.app-footer {
+.nav-menu.open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.nav-menu-item {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
   background-color: white;
-  padding: 12px 16px;
-  border-top: 1px solid #f0f0f0;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.app-nav {
   display: flex;
-  justify-content: space-around;
-  margin-bottom: 8px;
-}
-
-.nav-button {
-  flex: 1;
-  margin: 0 4px;
-}
-
-.app-version {
-  display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-menu-item span {
+  position: absolute;
+  right: 60px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.nav-menu-item:hover span {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.nav-menu-item:active {
+  transform: scale(0.95);
+}
+
+.nav-menu-item.active {
+  background-color: #4a90e2;
+}
+
+.nav-menu-item.active .nav-icon {
+  fill: white;
+}
+
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  fill: #4a90e2;
+  transition: fill 0.2s ease;
+}
+
+.nav-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 99;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* 版本信息 */
+.app-version {
+  position: fixed;
+  bottom: 8px;
+  left: 8px;
   font-size: 12px;
   color: #999;
-  padding-top: 8px;
+  z-index: 5;
 }
 
+/* 移动端优化提示 */
 .mobile-optimized-notice {
   position: fixed;
-  bottom: 70px;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(74, 144, 226, 0.9);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  z-index: 90;
-  animation: fadeInUp 0.5s ease, fadeOut 0.5s ease 3s forwards;
+  font-size: 12px;
+  color: #999;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 4px 8px;
+  border-radius: 12px;
+  z-index: 5;
+  animation: fadeInUp 0.5s ease;
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translate(-50%, 20px);
+    transform: translate(-50%, 10px);
   }
   to {
     opacity: 1;
@@ -152,17 +228,8 @@
   }
 }
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
-
-/* 移动端优化 */
-@media (max-width: 768px) {
+/* 响应式调整 */
+@media (max-width: 480px) {
   .app-header {
     padding: 12px 16px;
   }
@@ -171,46 +238,48 @@
     font-size: 20px;
   }
   
-  .app-content {
-    padding: 0 8px 12px;
+  .floating-nav-button {
+    width: 48px;
+    height: 48px;
   }
   
-  .app-footer {
-    padding: 8px;
+  .menu-icon {
+    width: 24px;
+    height: 24px;
   }
   
-  .nav-button {
-    padding: 8px 0;
-    font-size: 14px;
-  }
-  
-  .settings-button {
+  .nav-menu-item {
     width: 40px;
     height: 40px;
   }
   
-  .settings-icon {
+  .nav-icon {
     width: 20px;
     height: 20px;
   }
-  
-  .score-display, .energy-display {
-    font-size: 14px;
-    padding: 6px 10px;
-  }
 }
 
-/* 确保触摸区域足够大 */
-@media (hover: none) {
-  .nav-button {
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* 高级视觉效果 */
+.app-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(180deg, rgba(74, 144, 226, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+  z-index: 0;
+}
+
+/* 触摸反馈 */
+@media (hover: hover) {
+  .floating-nav-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
   }
   
-  .app-version button {
-    min-height: 36px;
-    min-width: 80px;
+  .nav-menu-item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
 }
