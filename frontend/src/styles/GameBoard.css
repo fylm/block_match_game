@@ -1,0 +1,152 @@
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.energy-bar-container {
+  width: 100%;
+  height: 30px;
+  background-color: #333;
+  border-radius: 15px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.energy-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  transition: width 0.3s ease;
+  border-radius: 15px;
+}
+
+.energy-burst-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #FF5722;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  padding: 5px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.energy-burst-button.disabled {
+  background-color: #777;
+  cursor: not-allowed;
+}
+
+.game-board {
+  display: grid;
+  grid-gap: 5px;
+  width: 100%;
+  aspect-ratio: 1/1;
+  background-color: #222;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.block {
+  aspect-ratio: 1/1;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.block:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.block.selected {
+  transform: scale(1.1);
+  z-index: 10;
+}
+
+.special-icon {
+  font-size: 20px;
+  text-shadow: 0 0 5px black;
+}
+
+.game-controls {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.control-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.control-button:hover {
+  background-color: #0b7dda;
+}
+
+.game-over-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.game-over-modal {
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.game-over-modal h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+.game-over-modal button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.game-over-modal button:hover {
+  background-color: #45a049;
+}

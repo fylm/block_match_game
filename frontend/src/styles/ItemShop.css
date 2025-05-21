@@ -1,0 +1,172 @@
+.item-shop {
+  background-color: #333;
+  border-radius: 10px;
+  padding: 20px;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #555;
+  padding-bottom: 10px;
+}
+
+.shop-header h2 {
+  margin: 0;
+  color: #61dafb;
+}
+
+.currency-display {
+  display: flex;
+  gap: 15px;
+}
+
+.currency {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: bold;
+}
+
+.currency.coins {
+  color: #ffd700;
+}
+
+.currency.gems {
+  color: #00ffcc;
+}
+
+.currency-icon {
+  font-size: 20px;
+}
+
+.shop-tabs {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #444;
+}
+
+.shop-tab {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.shop-tab.active {
+  color: #61dafb;
+  border-bottom: 2px solid #61dafb;
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.shop-item {
+  display: flex;
+  background-color: #444;
+  border-radius: 8px;
+  padding: 15px;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.shop-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.item-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  background-color: #555;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.placeholder-image {
+  font-size: 24px;
+  font-weight: bold;
+  color: #61dafb;
+}
+
+.item-info {
+  flex: 1;
+}
+
+.item-name {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+}
+
+.item-description {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #aaa;
+}
+
+.item-price {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.item-price.free {
+  color: #4CAF50;
+}
+
+.item-price.coins {
+  color: #ffd700;
+}
+
+.item-price.gems {
+  color: #00ffcc;
+}
+
+.item-price.insufficient {
+  color: #ff5252;
+}
+
+.purchase-button {
+  background-color: #61dafb;
+  color: #333;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.purchase-button:hover:not(:disabled) {
+  background-color: #4fa8c7;
+}
+
+.purchase-button:disabled {
+  background-color: #555;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.shop-loading, .shop-error {
+  text-align: center;
+  padding: 30px;
+  font-size: 18px;
+}
+
+.shop-error {
+  color: #ff5252;
+}

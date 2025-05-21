@@ -1,0 +1,33 @@
+{
+  "name": "block_match_game",
+  "version": "1.0.0",
+  "description": "方块连连消微信小程序游戏",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "ts-node src/backend/server.ts",
+    "dev": "nodemon --watch 'src/backend/**/*.ts' --exec 'ts-node' src/backend/server.ts",
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "微信小游戏",
+    "方块消除",
+    "Cocos Creator"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.1",
+    "nodemon": "^3.0.1",
+    "redis": "^4.6.10",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.11",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
+  }
+}
