@@ -1,6 +1,6 @@
 import React from 'react';
 import { Swiper, Toast, SpinLoading } from 'antd-mobile';
-import '../styles/core/SwipeConnector.css';
+import '../../styles/core/SwipeConnector.css';
 
 interface SwipeConnectorProps {
   rows: number;

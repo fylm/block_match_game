@@ -4,7 +4,7 @@ import GameBoard from './components/GameBoard';
 import ItemShop from './components/ItemShop';
 import Leaderboard from './components/Leaderboard';
 import TestValidator from './components/TestValidator';
-import { Button, Dialog } from './components/ui';
+import { Button, Dialog } from './components/ui/index';
 import { ConfigProvider } from 'antd-mobile';
 
 function App() {
