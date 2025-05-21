@@ -5,14 +5,16 @@
   max-width: 100%;
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-color: #f8f9fa;
 }
 
 .app-header {
-  background-color: #07c160;
-  color: white;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: transparent;
+  color: #333;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -22,22 +24,73 @@
   margin: 0;
   font-size: 24px;
   font-weight: 600;
+  color: #4a90e2;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-button:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.settings-icon {
+  width: 24px;
+  height: 24px;
+  fill: #4a90e2;
 }
 
 .header-info {
   display: flex;
-  justify-content: space-between;
-  margin-top: 8px;
+  gap: 16px;
 }
 
 .score-display, .energy-display {
   font-size: 16px;
   font-weight: 500;
+  background-color: white;
+  padding: 8px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-display {
+  color: #4a90e2;
+}
+
+.energy-display {
+  color: #e67e22;
+}
+
+.score-icon, .energy-icon {
+  font-size: 18px;
 }
 
 .app-content {
   flex: 1;
-  padding: 16px;
+  padding: 0 16px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -46,9 +99,10 @@
 }
 
 .app-footer {
-  background-color: #f5f5f5;
+  background-color: white;
   padding: 12px 16px;
-  border-top: 1px solid #e8e8e8;
+  border-top: 1px solid #f0f0f0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .app-nav {
@@ -76,7 +130,7 @@
   bottom: 70px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(7, 193, 96, 0.9);
+  background-color: rgba(74, 144, 226, 0.9);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
@@ -110,7 +164,7 @@
 /* 移动端优化 */
 @media (max-width: 768px) {
   .app-header {
-    padding: 12px;
+    padding: 12px 16px;
   }
   
   .app-header h1 {
@@ -118,7 +172,7 @@
   }
   
   .app-content {
-    padding: 12px 8px;
+    padding: 0 8px 12px;
   }
   
   .app-footer {
@@ -128,6 +182,21 @@
   .nav-button {
     padding: 8px 0;
     font-size: 14px;
+  }
+  
+  .settings-button {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .settings-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .score-display, .energy-display {
+    font-size: 14px;
+    padding: 6px 10px;
   }
 }
 

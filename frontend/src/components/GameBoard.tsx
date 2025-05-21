@@ -3,6 +3,20 @@ import '../styles/GameBoard.css';
 import SwipeConnector from './core/SwipeConnector';
 import { Toast } from 'antd-mobile';
 
+// 设置图标SVG组件
+const SettingsIcon = () => (
+  <svg className="settings-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+  </svg>
+);
+
+// 关闭图标SVG组件
+const CloseIcon = () => (
+  <svg className="close-icon" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+  </svg>
+);
+
 interface GameBoardProps {
   rows: number;
   cols: number;
@@ -35,6 +49,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
   const [specialBlocks, setSpecialBlocks] = useState<{row: number, col: number, type: string}[]>([]);
   const [showHapticFeedback, setShowHapticFeedback] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   
   const boardRef = useRef<HTMLDivElement>(null);
   const blockSize = useRef<number>(60); // 默认方块大小，会根据屏幕自适应调整
@@ -405,7 +420,21 @@ const GameBoard: React.FC<GameBoardProps> = ({
       duration: 1000,
     });
     
+    // 关闭设置菜单
+    setSettingsOpen(false);
+    
+    // 初始化游戏
     initializeBoard();
+  };
+
+  // 打开设置菜单
+  const openSettings = () => {
+    setSettingsOpen(true);
+  };
+
+  // 关闭设置菜单
+  const closeSettings = () => {
+    setSettingsOpen(false);
   };
 
   // 渲染方块
@@ -443,8 +472,97 @@ const GameBoard: React.FC<GameBoardProps> = ({
     );
   };
 
+  // 渲染设置菜单
+  const renderSettingsMenu = () => {
+    return (
+      <>
+        <div 
+          className={`settings-overlay ${settingsOpen ? 'open' : ''}`}
+          onClick={closeSettings}
+        />
+        <div className={`settings-menu ${settingsOpen ? 'open' : ''}`}>
+          <div className="settings-header">
+            <h2 className="settings-title">游戏设置</h2>
+            <button className="close-settings" onClick={closeSettings}>
+              <CloseIcon />
+            </button>
+          </div>
+          <div className="settings-content">
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏信息</h3>
+              <div className="settings-option">
+                <span className="settings-option-label">当前分数</span>
+                <span className="settings-option-value">{score}</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">剩余步数</span>
+                <span className="settings-option-value">{moves}</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">当前连击</span>
+                <span className="settings-option-value">{combo}x</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">能量值</span>
+                <span className="settings-option-value">{energy}%</span>
+              </div>
+            </div>
+            
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏操作</h3>
+              <div className="settings-button-group">
+                <button 
+                  className="settings-button-item"
+                  onClick={restartGame}
+                  disabled={isAnimating}
+                >
+                  重新开始
+                </button>
+                <button 
+                  className={`settings-button-item ${energy < 100 ? 'secondary' : ''}`}
+                  onClick={useEnergyBurst}
+                  disabled={energy < 100 || isAnimating}
+                >
+                  使用能量爆发 {energy < 100 ? `(${energy}%)` : ''}
+                </button>
+              </div>
+            </div>
+            
+            <div className="settings-section">
+              <h3 className="settings-section-title">游戏规则</h3>
+              <div className="settings-option">
+                <span className="settings-option-label">滑动连接3个或更多相同颜色的方块来消除</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">特殊方块有额外效果</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">连击可以获得更多分数</span>
+              </div>
+              <div className="settings-option">
+                <span className="settings-option-label">能量满后可以触发能量爆发</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   return (
     <div className="game-container">
+      {/* 顶部栏 - 只保留设置按钮 */}
+      <div className="game-header">
+        <button 
+          className="settings-button"
+          onClick={openSettings}
+          aria-label="设置"
+        >
+          <SettingsIcon />
+        </button>
+      </div>
+      
+      {/* 游戏信息区域 */}
       <div className="game-info">
         <div className="score">
           分数
@@ -460,6 +578,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </div>
       </div>
       
+      {/* 能量条 */}
       <div className="energy-bar-container">
         <div 
           className="energy-bar"
@@ -474,6 +593,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
         </button>
       </div>
       
+      {/* 游戏板 */}
       <div 
         ref={boardRef}
         className="game-board"
@@ -502,16 +622,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
         />
       </div>
       
-      <div className="game-controls">
-        <button 
-          className="control-button"
-          onClick={restartGame}
-          disabled={isAnimating}
-        >
-          重新开始
-        </button>
-      </div>
+      {/* 设置菜单 */}
+      {renderSettingsMenu()}
       
+      {/* 游戏结束弹窗 */}
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">

@@ -45,7 +45,7 @@
   100% { opacity: 0.6; }
 }
 
-/* 选中方块指示器 */
+/* 选中方块指示器 - 修复位置偏移问题 */
 .selected-block {
   position: absolute;
   border: 3px solid white;
@@ -55,6 +55,10 @@
   box-sizing: border-box;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   animation: selectedBlockPulse 1.5s infinite;
+  /* 修复位置偏移，确保选中框与方块完全对齐 */
+  transform: translate(0, 0);
+  margin: 0;
+  padding: 0;
 }
 
 .selected-block.error {

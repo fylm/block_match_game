@@ -1,0 +1,359 @@
+.settings-page {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-right: 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.back-button:active {
+  background-color: rgba(0, 0, 0, 0.05);
+  transform: scale(0.95);
+}
+
+.back-icon {
+  fill: #4a90e2;
+  width: 24px;
+  height: 24px;
+}
+
+.settings-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  flex: 1;
+}
+
+.settings-content {
+  padding: 20px;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a90e2;
+  margin: 0 0 16px 0;
+  position: relative;
+  padding-left: 12px;
+}
+
+.settings-section-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 16px;
+  background-color: #4a90e2;
+  border-radius: 2px;
+}
+
+.settings-info-card {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.info-item:first-child {
+  padding-top: 0;
+}
+
+.info-label {
+  font-size: 15px;
+  color: #666;
+}
+
+.info-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #4a90e2;
+}
+
+.settings-button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.settings-action-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.settings-action-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 3px rgba(74, 144, 226, 0.2);
+}
+
+.settings-action-button svg {
+  margin-right: 10px;
+  fill: white;
+}
+
+.settings-option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.settings-option:last-child {
+  border-bottom: none;
+}
+
+.option-info {
+  display: flex;
+  align-items: center;
+}
+
+.option-info svg {
+  margin-right: 12px;
+  fill: #4a90e2;
+}
+
+.option-label {
+  font-size: 15px;
+  color: #333;
+}
+
+/* 开关样式 */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 28px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-switch label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e0e0e0;
+  border-radius: 34px;
+  cursor: pointer;
+  transition: all 0.4s;
+}
+
+.toggle-switch label::before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  border-radius: 50%;
+  transition: all 0.4s;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch input:checked + label {
+  background-color: #4a90e2;
+}
+
+.toggle-switch input:checked + label::before {
+  transform: translateX(22px);
+}
+
+/* 主题选择器 */
+.theme-selector select {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  font-size: 14px;
+  color: #333;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%234a90e2'%3e%3cpath d='M7 10l5 5 5-5z'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 30px;
+  cursor: pointer;
+}
+
+.theme-selector select:focus {
+  outline: none;
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+/* 图标样式 */
+.restart-icon, .test-icon, .sound-icon, .vibration-icon, .theme-icon {
+  width: 22px;
+  height: 22px;
+}
+
+/* 移动端优化 */
+@media (max-width: 480px) {
+  .settings-header {
+    padding: 16px;
+  }
+  
+  .settings-content {
+    padding: 16px;
+  }
+  
+  .back-button {
+    width: 36px;
+    height: 36px;
+    margin-right: 12px;
+  }
+  
+  .settings-header h2 {
+    font-size: 18px;
+  }
+  
+  .settings-section-title {
+    font-size: 15px;
+  }
+  
+  .info-label {
+    font-size: 14px;
+  }
+  
+  .info-value {
+    font-size: 15px;
+  }
+  
+  .settings-action-button {
+    padding: 12px;
+    font-size: 15px;
+  }
+  
+  .option-label {
+    font-size: 14px;
+  }
+  
+  .toggle-switch {
+    width: 46px;
+    height: 26px;
+  }
+  
+  .toggle-switch label::before {
+    height: 18px;
+    width: 18px;
+  }
+  
+  .toggle-switch input:checked + label::before {
+    transform: translateX(20px);
+  }
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.settings-action-button:hover {
+  animation: pulse 1s infinite;
+}
+
+/* 高级视觉效果 */
+.settings-page {
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-page::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(74, 144, 226, 0.03) 0%, rgba(255, 255, 255, 0) 70%);
+  z-index: -1;
+  animation: rotate 30s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

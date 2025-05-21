@@ -40,8 +40,9 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     if (containerRef.current) {
       containerRef.current.style.setProperty('--rows', rows.toString());
       containerRef.current.style.setProperty('--cols', cols.toString());
+      containerRef.current.style.setProperty('--block-size', `${blockSize}px`);
     }
-  }, [rows, cols]);
+  }, [rows, cols, blockSize]);
   
   // 处理触摸开始
   const handleTouchStart = (e: React.TouchEvent, row: number, col: number) => {
@@ -265,21 +266,32 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     );
   };
   
-  // 渲染选中的方块指示器
+  // 渲染选中的方块指示器 - 修复位置偏移问题
   const renderSelectedBlocks = () => {
-    return currentPath.map((block, index) => (
-      <div
-        key={`selected-${index}`}
-        className={`selected-block ${showError ? 'error' : ''}`}
-        style={{
-          left: `${block.col * (100 / cols)}%`,
-          top: `${block.row * (100 / rows)}%`,
-          width: `${100 / cols}%`,
-          height: `${100 / rows}%`,
-          borderColor: blockColors[block.row][block.col]
-        }}
-      />
-    ));
+    return currentPath.map((block, index) => {
+      // 计算精确的像素位置，确保选中框与方块完全对齐
+      // 使用像素单位而非百分比，确保与实际方块大小完全匹配
+      const blockGap = 8; // 方块之间的间距，与CSS中的grid-gap保持一致
+      const paddingOffset = 12; // 游戏板内边距，与CSS中的padding保持一致
+      
+      // 计算精确的像素位置
+      const exactLeft = paddingOffset + (block.col * (blockSize + blockGap));
+      const exactTop = paddingOffset + (block.row * (blockSize + blockGap));
+      
+      return (
+        <div
+          key={`selected-${index}`}
+          className={`selected-block ${showError ? 'error' : ''}`}
+          style={{
+            left: `${exactLeft}px`,
+            top: `${exactTop}px`,
+            width: `${blockSize}px`,
+            height: `${blockSize}px`,
+            borderColor: blockColors[block.row][block.col]
+          }}
+        />
+      );
+    });
   };
   
   // 渲染加载状态
