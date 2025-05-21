@@ -1,20 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../styles/GameBoard.css';
+import SwipeConnector from './core/SwipeConnector';
 
-// 方块类型定义
-interface Block {
-  id: number;
-  type: number;
-  special: string | null;
-  x: number;
-  y: number;
-  selected: boolean;
-}
-
-// 特殊方块类型
-type SpecialType = null | 'bomb' | 'rainbow' | 'line';
-
-// 游戏面板属性
 interface GameBoardProps {
   rows: number;
   cols: number;
@@ -22,366 +9,340 @@ interface GameBoardProps {
   onEnergyChange: (energy: number) => void;
 }
 
+interface Block {
+  id: string;
+  color: string;
+  type: 'normal' | 'bomb' | 'rainbow' | 'line';
+  selected: boolean;
+}
+
 const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEnergyChange }) => {
-  // 游戏状态
-  const [blocks, setBlocks] = useState<Block[]>([]);
-  const [selectedBlocks, setSelectedBlocks] = useState<Block[]>([]);
+  const [blocks, setBlocks] = useState<Block[][]>([]);
   const [score, setScore] = useState<number>(0);
+  const [moves, setMoves] = useState<number>(20);
   const [energy, setEnergy] = useState<number>(0);
   const [combo, setCombo] = useState<number>(0);
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [movesLeft, setMovesLeft] = useState<number>(20);
+  const [selectedBlocks, setSelectedBlocks] = useState<{row: number, col: number}[]>([]);
+  const [isSwipeEnabled, setIsSwipeEnabled] = useState<boolean>(true);
+  const [blockColors, setBlockColors] = useState<string[][]>([]);
+  const [specialBlocks, setSpecialBlocks] = useState<{row: number, col: number, type: string}[]>([]);
+  const [showHapticFeedback, setShowHapticFeedback] = useState<boolean>(false);
+  
+  const boardRef = useRef<HTMLDivElement>(null);
+  const blockSize = useRef<number>(60); // 默认方块大小，会根据屏幕自适应调整
 
-  // 颜色映射
-  const colorMap = [
-    '#FF5252', // 红色
-    '#4CAF50', // 绿色
-    '#2196F3', // 蓝色
-    '#FFEB3B', // 黄色
-    '#9C27B0', // 紫色
-    '#FF9800', // 橙色
-  ];
-
-  // 特殊方块图标
-  const specialIcons = {
-    bomb: '💣',
-    rainbow: '🌈',
-    line: '⚡',
-  };
-
-  // 初始化游戏面板
-  const initializeBoard = useCallback(() => {
-    const newBlocks: Block[] = [];
-    let id = 0;
+  // 颜色列表
+  const colors = ['#FF5252', '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#00BCD4'];
+  
+  // 初始化游戏板
+  useEffect(() => {
+    initializeBoard();
     
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        // 随机生成方块类型（颜色）
-        const type = Math.floor(Math.random() * 6);
-        
-        // 随机生成特殊方块（5%概率）
-        let special: SpecialType = null;
-        const specialRand = Math.random();
-        if (specialRand < 0.02) {
-          special = 'bomb';
-        } else if (specialRand < 0.04) {
-          special = 'rainbow';
-        } else if (specialRand < 0.05) {
-          special = 'line';
-        }
-        
-        newBlocks.push({
-          id: id++,
-          type,
-          special,
-          x,
-          y,
-          selected: false
-        });
+    // 计算适合屏幕的方块大小
+    const updateBlockSize = () => {
+      if (boardRef.current) {
+        const boardWidth = boardRef.current.clientWidth;
+        const calculatedSize = Math.floor(boardWidth / cols);
+        blockSize.current = calculatedSize;
       }
+    };
+    
+    updateBlockSize();
+    window.addEventListener('resize', updateBlockSize);
+    
+    return () => {
+      window.removeEventListener('resize', updateBlockSize);
+    };
+  }, []);
+
+  // 监听能量变化
+  useEffect(() => {
+    onEnergyChange(energy);
+  }, [energy, onEnergyChange]);
+
+  // 监听分数变化
+  useEffect(() => {
+    onScoreChange(score);
+  }, [score, onScoreChange]);
+
+  // 初始化游戏板
+  const initializeBoard = () => {
+    const newBlocks: Block[][] = [];
+    const newBlockColors: string[][] = [];
+    const newSpecialBlocks: {row: number, col: number, type: string}[] = [];
+    
+    for (let i = 0; i < rows; i++) {
+      const row: Block[] = [];
+      const colorRow: string[] = [];
+      
+      for (let j = 0; j < cols; j++) {
+        const block = createRandomBlock();
+        row.push(block);
+        colorRow.push(block.color);
+        
+        if (block.type !== 'normal') {
+          newSpecialBlocks.push({
+            row: i,
+            col: j,
+            type: block.type
+          });
+        }
+      }
+      
+      newBlocks.push(row);
+      newBlockColors.push(colorRow);
     }
     
     setBlocks(newBlocks);
-    setSelectedBlocks([]);
+    setBlockColors(newBlockColors);
+    setSpecialBlocks(newSpecialBlocks);
     setScore(0);
+    setMoves(20);
     setEnergy(0);
     setCombo(0);
     setGameOver(false);
-    setMovesLeft(20);
-  }, [rows, cols]);
-
-  // 组件挂载时初始化游戏
-  useEffect(() => {
-    initializeBoard();
-  }, [initializeBoard]);
-
-  // 检查两个方块是否相邻
-  const areBlocksAdjacent = (block1: Block, block2: Block): boolean => {
-    // 水平相邻
-    if (Math.abs(block1.x - block2.x) === 1 && block1.y === block2.y) {
-      return true;
-    }
-    // 垂直相邻
-    if (Math.abs(block1.y - block2.y) === 1 && block1.x === block2.x) {
-      return true;
-    }
-    // 对角线相邻
-    if (Math.abs(block1.x - block2.x) === 1 && Math.abs(block1.y - block2.y) === 1) {
-      return true;
-    }
-    return false;
+    setSelectedBlocks([]);
   };
 
-  // 检查方块是否可以被选中
-  const canSelectBlock = (block: Block): boolean => {
-    // 彩虹方块可以与任何方块连接
-    if (block.special === 'rainbow') {
-      return true;
-    }
+  // 创建随机方块
+  const createRandomBlock = (): Block => {
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    const randomType = Math.random() < 0.9 ? 'normal' : 
+                      (Math.random() < 0.5 ? 'bomb' : 
+                      (Math.random() < 0.5 ? 'rainbow' : 'line'));
     
-    // 如果没有选中的方块，任何方块都可以被选中
-    if (selectedBlocks.length === 0) {
-      return true;
-    }
-    
-    const lastSelected = selectedBlocks[selectedBlocks.length - 1];
-    
-    // 彩虹方块可以与任何方块连接
-    if (lastSelected.special === 'rainbow') {
-      return true;
-    }
-    
-    // 检查是否相邻
-    if (!areBlocksAdjacent(block, lastSelected)) {
-      return false;
-    }
-    
-    // 检查类型是否相同
-    return block.type === lastSelected.type;
+    return {
+      id: Math.random().toString(36).substr(2, 9),
+      color: randomColor,
+      type: randomType,
+      selected: false
+    };
   };
 
-  // 处理方块点击
-  const handleBlockClick = (block: Block) => {
-    if (gameOver) return;
+  // 处理滑动路径完成
+  const handlePathComplete = (path: {row: number, col: number}[]) => {
+    if (gameOver || moves <= 0 || path.length < 3) return;
     
-    // 如果方块已经被选中，取消选择链中该方块之后的所有方块
-    const index = selectedBlocks.findIndex(b => b.id === block.id);
-    if (index !== -1) {
-      const newSelectedBlocks = selectedBlocks.slice(0, index + 1);
-      setSelectedBlocks(newSelectedBlocks);
-      
-      // 更新方块选中状态
-      setBlocks(blocks.map(b => ({
-        ...b,
-        selected: newSelectedBlocks.some(selected => selected.id === b.id)
-      })));
-      
-      return;
-    }
+    // 触发触感反馈
+    triggerHapticFeedback();
     
-    // 检查是否可以选中
-    if (!canSelectBlock(block)) {
-      return;
-    }
+    // 更新选中的方块
+    setSelectedBlocks(path);
     
-    // 添加到选中列表
-    const newSelectedBlocks = [...selectedBlocks, block];
-    setSelectedBlocks(newSelectedBlocks);
-    
-    // 更新方块选中状态
-    setBlocks(blocks.map(b => ({
-      ...b,
-      selected: newSelectedBlocks.some(selected => selected.id === b.id)
-    })));
+    // 延迟消除，让玩家看到连线效果
+    setTimeout(() => {
+      eliminateBlocks(path);
+    }, 300);
   };
 
-  // 处理方块连线完成
-  const handleLineComplete = () => {
-    if (selectedBlocks.length < 3) {
-      // 取消选择
+  // 触发触感反馈
+  const triggerHapticFeedback = () => {
+    // 如果设备支持，触发振动
+    if (navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+    
+    // 显示视觉反馈
+    setShowHapticFeedback(true);
+    setTimeout(() => setShowHapticFeedback(false), 100);
+  };
+
+  // 消除选中的方块
+  const eliminateBlocks = (path: {row: number, col: number}[]) => {
+    if (path.length < 3) {
       setSelectedBlocks([]);
-      setBlocks(blocks.map(b => ({ ...b, selected: false })));
       return;
     }
     
     // 计算得分
-    const baseScore = selectedBlocks.length * 10;
-    const comboMultiplier = Math.max(1, combo * 0.5);
-    const specialBonus = selectedBlocks.reduce((bonus, block) => {
-      if (block.special === 'bomb') return bonus + 50;
-      if (block.special === 'rainbow') return bonus + 30;
-      if (block.special === 'line') return bonus + 40;
-      return bonus;
-    }, 0);
-    
-    const totalScore = Math.floor((baseScore + specialBonus) * comboMultiplier);
+    const baseScore = path.length * 10;
+    const comboMultiplier = combo > 0 ? combo * 0.5 + 1 : 1;
+    const newScore = score + Math.floor(baseScore * comboMultiplier);
     
     // 更新分数
-    const newScore = score + totalScore;
     setScore(newScore);
-    onScoreChange(newScore);
-    
-    // 更新连击
-    const newCombo = combo + 1;
-    setCombo(newCombo);
     
     // 更新能量
-    const energyGain = selectedBlocks.length * 2;
-    const newEnergy = Math.min(100, energy + energyGain);
+    const energyGain = path.length * 5;
+    const newEnergy = Math.min(energy + energyGain, 100);
     setEnergy(newEnergy);
-    onEnergyChange(newEnergy);
+    
+    // 更新连击
+    setCombo(combo + 1);
+    
+    // 创建新的方块数组和颜色数组
+    const newBlocks = [...blocks];
+    const newBlockColors = [...blockColors];
+    const newSpecialBlocks: {row: number, col: number, type: string}[] = [];
     
     // 处理特殊方块效果
-    let blocksToRemove: Block[] = [...selectedBlocks];
-    
-    selectedBlocks.forEach(block => {
-      if (block.special === 'bomb') {
+    path.forEach(pos => {
+      const block = newBlocks[pos.row][pos.col];
+      
+      if (block.type === 'bomb') {
         // 炸弹效果：消除周围的方块
-        blocks.forEach(b => {
-          if (Math.abs(b.x - block.x) <= 1 && Math.abs(b.y - block.y) <= 1) {
-            if (!blocksToRemove.some(rb => rb.id === b.id)) {
-              blocksToRemove.push(b);
+        for (let i = Math.max(0, pos.row - 1); i <= Math.min(rows - 1, pos.row + 1); i++) {
+          for (let j = Math.max(0, pos.col - 1); j <= Math.min(cols - 1, pos.col + 1); j++) {
+            if (i !== pos.row || j !== pos.col) {
+              const newBlock = createRandomBlock();
+              newBlocks[i][j] = newBlock;
+              newBlockColors[i][j] = newBlock.color;
+              
+              if (newBlock.type !== 'normal') {
+                newSpecialBlocks.push({
+                  row: i,
+                  col: j,
+                  type: newBlock.type
+                });
+              }
             }
           }
-        });
-      } else if (block.special === 'line') {
-        // 直线消除：消除同一行或同一列的方块
-        blocks.forEach(b => {
-          if (b.x === block.x || b.y === block.y) {
-            if (!blocksToRemove.some(rb => rb.id === b.id)) {
-              blocksToRemove.push(b);
-            }
-          }
-        });
-      }
-    });
-    
-    // 移除方块并生成新方块
-    const newBlocks = blocks.filter(b => !blocksToRemove.some(rb => rb.id === b.id));
-    
-    // 生成新方块
-    let maxId = blocks.reduce((max, block) => Math.max(max, block.id), 0);
-    const addedBlocks: Block[] = [];
-    
-    // 计算每列需要添加的方块数量
-    const columnsToFill: { [key: number]: number } = {};
-    blocksToRemove.forEach(block => {
-      columnsToFill[block.x] = (columnsToFill[block.x] || 0) + 1;
-    });
-    
-    // 添加新方块
-    Object.entries(columnsToFill).forEach(([colStr, count]) => {
-      const col = parseInt(colStr);
-      for (let i = 0; i < count; i++) {
-        const type = Math.floor(Math.random() * 6);
-        
-        // 随机生成特殊方块
-        let special: SpecialType = null;
-        const specialRand = Math.random();
-        if (specialRand < 0.02) {
-          special = 'bomb';
-        } else if (specialRand < 0.04) {
-          special = 'rainbow';
-        } else if (specialRand < 0.05) {
-          special = 'line';
         }
-        
-        addedBlocks.push({
-          id: ++maxId,
-          type,
-          special,
-          x: col,
-          y: -i - 1, // 从顶部落下
-          selected: false
+      } else if (block.type === 'line') {
+        // 直线效果：消除同一行或列的方块
+        for (let i = 0; i < rows; i++) {
+          if (i !== pos.row) {
+            const newBlock = createRandomBlock();
+            newBlocks[i][pos.col] = newBlock;
+            newBlockColors[i][pos.col] = newBlock.color;
+            
+            if (newBlock.type !== 'normal') {
+              newSpecialBlocks.push({
+                row: i,
+                col: pos.col,
+                type: newBlock.type
+              });
+            }
+          }
+        }
+        for (let j = 0; j < cols; j++) {
+          if (j !== pos.col) {
+            const newBlock = createRandomBlock();
+            newBlocks[pos.row][j] = newBlock;
+            newBlockColors[pos.row][j] = newBlock.color;
+            
+            if (newBlock.type !== 'normal') {
+              newSpecialBlocks.push({
+                row: pos.row,
+                col: j,
+                type: newBlock.type
+              });
+            }
+          }
+        }
+      }
+      
+      // 重新生成被消除的方块
+      const newBlock = createRandomBlock();
+      newBlocks[pos.row][pos.col] = newBlock;
+      newBlockColors[pos.row][pos.col] = newBlock.color;
+      
+      if (newBlock.type !== 'normal') {
+        newSpecialBlocks.push({
+          row: pos.row,
+          col: pos.col,
+          type: newBlock.type
         });
       }
     });
     
-    // 更新游戏面板
-    setBlocks([...newBlocks, ...addedBlocks]);
-    setSelectedBlocks([]);
+    // 更新方块数组和颜色数组
+    setBlocks(newBlocks);
+    setBlockColors(newBlockColors);
+    setSpecialBlocks(newSpecialBlocks);
     
-    // 减少剩余步数
-    const newMovesLeft = movesLeft - 1;
-    setMovesLeft(newMovesLeft);
+    // 减少移动次数
+    const newMoves = moves - 1;
+    setMoves(newMoves);
     
     // 检查游戏是否结束
-    if (newMovesLeft <= 0) {
+    if (newMoves <= 0) {
       setGameOver(true);
+      setIsSwipeEnabled(false);
     }
+    
+    // 重置选择
+    setSelectedBlocks([]);
   };
 
   // 使用能量爆发
   const useEnergyBurst = () => {
-    if (energy < 100 || gameOver) return;
+    if (energy < 100) return;
     
-    // 随机移除30%的方块
-    const blocksToRemove: Block[] = [];
-    const blockCount = Math.floor(blocks.length * 0.3);
+    // 触发触感反馈
+    triggerHapticFeedback();
     
-    for (let i = 0; i < blockCount; i++) {
-      const randomIndex = Math.floor(Math.random() * blocks.length);
-      if (!blocksToRemove.some(b => b.id === blocks[randomIndex].id)) {
-        blocksToRemove.push(blocks[randomIndex]);
+    // 随机消除一半的方块
+    const newBlocks = [...blocks];
+    const newBlockColors = [...blockColors];
+    const newSpecialBlocks: {row: number, col: number, type: string}[] = [];
+    
+    const totalBlocks = rows * cols;
+    const blocksToEliminate = Math.floor(totalBlocks / 2);
+    
+    let eliminated = 0;
+    while (eliminated < blocksToEliminate) {
+      const randomRow = Math.floor(Math.random() * rows);
+      const randomCol = Math.floor(Math.random() * cols);
+      
+      // 重新生成随机方块
+      const newBlock = createRandomBlock();
+      newBlocks[randomRow][randomCol] = newBlock;
+      newBlockColors[randomRow][randomCol] = newBlock.color;
+      
+      if (newBlock.type !== 'normal') {
+        newSpecialBlocks.push({
+          row: randomRow,
+          col: randomCol,
+          type: newBlock.type
+        });
       }
+      
+      eliminated++;
     }
     
-    // 计算得分
-    const burstScore = blockCount * 20;
-    const newScore = score + burstScore;
-    setScore(newScore);
-    onScoreChange(newScore);
+    // 更新方块数组和颜色数组
+    setBlocks(newBlocks);
+    setBlockColors(newBlockColors);
+    setSpecialBlocks(newSpecialBlocks);
+    
+    // 增加分数
+    setScore(score + 500);
     
     // 重置能量
     setEnergy(0);
-    onEnergyChange(0);
-    
-    // 移除方块并生成新方块
-    const newBlocks = blocks.filter(b => !blocksToRemove.some(rb => rb.id === b.id));
-    
-    // 生成新方块
-    let maxId = blocks.reduce((max, block) => Math.max(max, block.id), 0);
-    const addedBlocks: Block[] = [];
-    
-    // 计算每列需要添加的方块数量
-    const columnsToFill: { [key: number]: number } = {};
-    blocksToRemove.forEach(block => {
-      columnsToFill[block.x] = (columnsToFill[block.x] || 0) + 1;
-    });
-    
-    // 添加新方块
-    Object.entries(columnsToFill).forEach(([colStr, count]) => {
-      const col = parseInt(colStr);
-      for (let i = 0; i < count; i++) {
-        const type = Math.floor(Math.random() * 6);
-        
-        // 随机生成特殊方块
-        let special: SpecialType = null;
-        const specialRand = Math.random();
-        if (specialRand < 0.02) {
-          special = 'bomb';
-        } else if (specialRand < 0.04) {
-          special = 'rainbow';
-        } else if (specialRand < 0.05) {
-          special = 'line';
-        }
-        
-        addedBlocks.push({
-          id: ++maxId,
-          type,
-          special,
-          x: col,
-          y: -i - 1, // 从顶部落下
-          selected: false
-        });
-      }
-    });
-    
-    // 更新游戏面板
-    setBlocks([...newBlocks, ...addedBlocks]);
   };
 
   // 重新开始游戏
   const restartGame = () => {
     initializeBoard();
+    setIsSwipeEnabled(true);
   };
 
   // 渲染方块
-  const renderBlock = (block: Block) => {
-    const style = {
-      backgroundColor: colorMap[block.type],
-      border: block.selected ? '2px solid white' : '1px solid rgba(255, 255, 255, 0.3)',
-      boxShadow: block.selected ? '0 0 10px white' : 'none',
-    };
+  const renderBlock = (block: Block, row: number, col: number) => {
+    let icon = '';
+    
+    if (block.type === 'bomb') {
+      icon = '💣';
+    } else if (block.type === 'rainbow') {
+      icon = '🌈';
+    } else if (block.type === 'line') {
+      icon = '⚡';
+    }
     
     return (
-      <div
-        key={block.id}
+      <div 
+        key={`${row}-${col}`}
         className={`block ${block.selected ? 'selected' : ''}`}
-        style={style}
-        onClick={() => handleBlockClick(block)}
+        style={{ 
+          backgroundColor: block.color,
+          width: `${blockSize.current}px`,
+          height: `${blockSize.current}px`
+        }}
       >
-        {block.special && <div className="special-icon">{specialIcons[block.special as keyof typeof specialIcons]}</div>}
+        {icon && <span className="special-icon">{icon}</span>}
       </div>
     );
   };
@@ -390,42 +351,73 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     <div className="game-container">
       <div className="game-info">
         <div className="score">分数: {score}</div>
-        <div className="moves">剩余步数: {movesLeft}</div>
+        <div className="moves">步数: {moves}</div>
         <div className="combo">连击: {combo}x</div>
       </div>
       
       <div className="energy-bar-container">
-        <div className="energy-bar" style={{ width: `${energy}%` }}></div>
+        <div 
+          className="energy-bar"
+          style={{ width: `${energy}%` }}
+        />
         <button 
           className={`energy-burst-button ${energy < 100 ? 'disabled' : ''}`}
           onClick={useEnergyBurst}
           disabled={energy < 100}
         >
-          能量爆发
+          能量爆发!
         </button>
       </div>
       
-      <div className="game-board" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
-        {blocks.map(block => renderBlock(block))}
+      <div 
+        ref={boardRef}
+        className="game-board"
+        style={{ 
+          width: `${cols * blockSize.current}px`,
+          height: `${rows * blockSize.current}px`
+        }}
+      >
+        {/* 渲染方块 */}
+        {blocks.map((row, rowIndex) => 
+          row.map((block, colIndex) => 
+            renderBlock(block, rowIndex, colIndex)
+          )
+        )}
+        
+        {/* 滑动连接组件 */}
+        <SwipeConnector
+          rows={rows}
+          cols={cols}
+          blockSize={blockSize.current}
+          onPathComplete={handlePathComplete}
+          isEnabled={isSwipeEnabled && !gameOver}
+          minPathLength={3}
+          blockColors={blockColors}
+          specialBlocks={specialBlocks}
+        />
       </div>
       
       <div className="game-controls">
-        <button className="control-button" onClick={handleLineComplete}>完成连线</button>
-        <button className="control-button" onClick={() => {
-          setSelectedBlocks([]);
-          setBlocks(blocks.map(b => ({ ...b, selected: false })));
-        }}>取消选择</button>
+        <button 
+          className="control-button"
+          onClick={restartGame}
+        >
+          重新开始
+        </button>
       </div>
       
       {gameOver && (
         <div className="game-over-overlay">
           <div className="game-over-modal">
-            <h2>游戏结束</h2>
+            <h2>游戏结束!</h2>
             <p>最终得分: {score}</p>
-            <button onClick={restartGame}>重新开始</button>
+            <button onClick={restartGame}>再来一局</button>
           </div>
         </div>
       )}
+      
+      {/* 触感反馈视觉效果 */}
+      {showHapticFeedback && <div className="haptic-feedback" />}
     </div>
   );
 };

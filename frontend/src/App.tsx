@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import GameBoard from './components/GameBoard';
 import ItemShop from './components/ItemShop';
 import Leaderboard from './components/Leaderboard';
@@ -10,6 +10,57 @@ function App() {
   const [showRules, setShowRules] = useState<boolean>(false);
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'game' | 'shop' | 'leaderboard'>('game');
+  const [touchStartX, setTouchStartX] = useState<number | null>(null);
+  const [touchEndX, setTouchEndX] = useState<number | null>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  // 处理滑动切换标签
+  useEffect(() => {
+    const handleTouchStart = (e: TouchEvent) => {
+      setTouchStartX(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      setTouchEndX(e.changedTouches[0].clientX);
+    };
+
+    const mainElement = mainRef.current;
+    if (mainElement) {
+      mainElement.addEventListener('touchstart', handleTouchStart);
+      mainElement.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      if (mainElement) {
+        mainElement.removeEventListener('touchstart', handleTouchStart);
+        mainElement.removeEventListener('touchend', handleTouchEnd);
+      }
+    };
+  }, []);
+
+  // 处理滑动导航
+  useEffect(() => {
+    if (touchStartX !== null && touchEndX !== null) {
+      const difference = touchStartX - touchEndX;
+      const threshold = 100; // 滑动阈值
+
+      if (Math.abs(difference) > threshold) {
+        if (difference > 0) {
+          // 向左滑动，切换到下一个标签
+          if (activeTab === 'game') setActiveTab('shop');
+          else if (activeTab === 'shop') setActiveTab('leaderboard');
+        } else {
+          // 向右滑动，切换到上一个标签
+          if (activeTab === 'leaderboard') setActiveTab('shop');
+          else if (activeTab === 'shop') setActiveTab('game');
+        }
+      }
+
+      // 重置触摸状态
+      setTouchStartX(null);
+      setTouchEndX(null);
+    }
+  }, [touchStartX, touchEndX, activeTab]);
 
   const handleScoreChange = (newScore: number) => {
     // 在实际应用中，这里可能需要更新全局状态或发送到服务器
@@ -36,8 +87,14 @@ function App() {
       <header className="App-header">
         <h1>方块连连消</h1>
         <div className="header-buttons">
-          <button onClick={() => setShowRules(true)}>游戏规则</button>
-          <button onClick={() => setShowSettings(true)}>设置</button>
+          <button onClick={() => setShowRules(true)}>
+            <span className="button-icon">📋</span>
+            <span className="button-text">规则</span>
+          </button>
+          <button onClick={() => setShowSettings(true)}>
+            <span className="button-icon">⚙️</span>
+            <span className="button-text">设置</span>
+          </button>
         </div>
       </header>
 
@@ -46,50 +103,64 @@ function App() {
           className={`nav-button ${activeTab === 'game' ? 'active' : ''}`}
           onClick={() => setActiveTab('game')}
         >
-          游戏
+          <span className="nav-icon">🎮</span>
+          <span className="nav-text">游戏</span>
         </button>
         <button 
           className={`nav-button ${activeTab === 'shop' ? 'active' : ''}`}
           onClick={() => setActiveTab('shop')}
         >
-          商店
+          <span className="nav-icon">🛒</span>
+          <span className="nav-text">商店</span>
         </button>
         <button 
           className={`nav-button ${activeTab === 'leaderboard' ? 'active' : ''}`}
           onClick={() => setActiveTab('leaderboard')}
         >
-          排行榜
+          <span className="nav-icon">🏆</span>
+          <span className="nav-text">排行榜</span>
         </button>
       </nav>
 
-      <main>
-        {activeTab === 'game' && (
-          <GameBoard 
-            rows={8} 
-            cols={8} 
-            onScoreChange={handleScoreChange} 
-            onEnergyChange={handleEnergyChange} 
-          />
-        )}
-        
-        {activeTab === 'shop' && (
-          <ItemShop 
-            coins={coins}
-            gems={gems}
-            onPurchase={handlePurchase}
-          />
-        )}
-        
-        {activeTab === 'leaderboard' && (
-          <Leaderboard 
-            currentUserId="user2"
-          />
-        )}
+      <main ref={mainRef} className="swipe-container">
+        <div 
+          className="swipe-wrapper" 
+          style={{ 
+            transform: `translateX(${
+              activeTab === 'game' ? '0' : 
+              activeTab === 'shop' ? '-100%' : 
+              '-200%'
+            })` 
+          }}
+        >
+          <div className="swipe-page">
+            <GameBoard 
+              rows={8} 
+              cols={8} 
+              onScoreChange={handleScoreChange} 
+              onEnergyChange={handleEnergyChange} 
+            />
+          </div>
+          
+          <div className="swipe-page">
+            <ItemShop 
+              coins={coins}
+              gems={gems}
+              onPurchase={handlePurchase}
+            />
+          </div>
+          
+          <div className="swipe-page">
+            <Leaderboard 
+              currentUserId="user2"
+            />
+          </div>
+        </div>
       </main>
 
       {showRules && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay" onClick={() => setShowRules(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>游戏规则</h2>
             <div className="modal-content">
               <p>1. 连接三个或更多相同颜色的方块来消除它们</p>
@@ -109,8 +180,8 @@ function App() {
       )}
 
       {showSettings && (
-        <div className="modal-overlay">
-          <div className="modal">
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
             <h2>设置</h2>
             <div className="modal-content">
               <div className="setting-item">
@@ -129,6 +200,10 @@ function App() {
                   <option value="hard">困难</option>
                 </select>
               </div>
+              <div className="setting-item">
+                <label>振动反馈</label>
+                <input type="checkbox" defaultChecked />
+              </div>
             </div>
             <button onClick={() => setShowSettings(false)}>保存</button>
           </div>
@@ -136,6 +211,16 @@ function App() {
       )}
 
       <footer>
+        <div className="currency-display-footer">
+          <div className="currency">
+            <span className="currency-icon">🪙</span>
+            <span className="currency-amount">{coins}</span>
+          </div>
+          <div className="currency">
+            <span className="currency-icon">💎</span>
+            <span className="currency-amount">{gems}</span>
+          </div>
+        </div>
         <p>© 2025 方块连连消 - 版权所有</p>
       </footer>
     </div>

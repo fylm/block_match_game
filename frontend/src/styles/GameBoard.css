@@ -1,36 +1,58 @@
+/* 移动端优化的GameBoard.css */
 .game-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  max-width: 600px;
+  width: 100%;
+  max-width: 500px;
   margin: 0 auto;
+  padding: 16px;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .game-info {
   display: flex;
   justify-content: space-between;
   width: 100%;
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-weight: bold;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.score, .moves, .combo {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+}
+
+.score {
+  color: #4a90e2;
+}
+
+.combo {
+  color: #e67e22;
 }
 
 .energy-bar-container {
   width: 100%;
-  height: 30px;
-  background-color: #333;
-  border-radius: 15px;
+  height: 24px;
+  background-color: #f1f1f1;
+  border-radius: 12px;
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .energy-bar {
   height: 100%;
-  background: linear-gradient(90deg, #4CAF50, #8BC34A);
+  background: linear-gradient(90deg, #4a90e2 0%, #63b3ed 100%);
+  border-radius: 12px;
   transition: width 0.3s ease;
-  border-radius: 15px;
 }
 
 .energy-burst-button {
@@ -38,30 +60,36 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: #FF5722;
-  color: white;
+  background-color: transparent;
   border: none;
-  border-radius: 15px;
-  padding: 5px 15px;
-  font-weight: bold;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
   cursor: pointer;
-  transition: all 0.3s ease;
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.energy-bar-container:hover .energy-burst-button,
+.energy-bar[style*="width: 100"] ~ .energy-burst-button {
+  opacity: 1;
 }
 
 .energy-burst-button.disabled {
-  background-color: #777;
-  cursor: not-allowed;
+  opacity: 0 !important;
+  pointer-events: none;
 }
 
 .game-board {
   display: grid;
-  grid-gap: 5px;
+  grid-gap: 8px;
   width: 100%;
   aspect-ratio: 1/1;
-  background-color: #222;
-  border-radius: 10px;
-  padding: 10px;
   margin-bottom: 20px;
+  touch-action: none; /* 防止触摸滑动时页面滚动 */
 }
 
 .block {
@@ -72,42 +100,62 @@
   align-items: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.block:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+.block:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .block.selected {
-  transform: scale(1.1);
-  z-index: 10;
+  transform: scale(1.05);
+  z-index: 2;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8), 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 .special-icon {
   font-size: 20px;
-  text-shadow: 0 0 5px black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .game-controls {
   display: flex;
-  justify-content: space-around;
+  gap: 12px;
   width: 100%;
+  margin-top: 8px;
 }
 
 .control-button {
-  background-color: #2196F3;
+  flex: 1;
+  background-color: #4a90e2;
   color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.control-button:hover {
-  background-color: #0b7dda;
+.control-button:nth-child(2) {
+  background-color: #f1f1f1;
+  color: #666;
+}
+
+.control-button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .game-over-overlay {
@@ -121,32 +169,155 @@
   justify-content: center;
   align-items: center;
   z-index: 100;
+  animation: fadeIn 0.3s ease;
 }
 
 .game-over-modal {
   background-color: white;
-  padding: 30px;
-  border-radius: 10px;
+  border-radius: 16px;
+  padding: 24px;
+  width: 80%;
+  max-width: 320px;
   text-align: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.3s ease;
 }
 
 .game-over-modal h2 {
   margin-top: 0;
   color: #333;
+  font-size: 24px;
+}
+
+.game-over-modal p {
+  font-size: 18px;
+  margin: 16px 0 24px;
+  color: #4a90e2;
+  font-weight: 700;
 }
 
 .game-over-modal button {
-  background-color: #4CAF50;
+  background-color: #4a90e2;
   color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-weight: 600;
   font-size: 16px;
   cursor: pointer;
-  margin-top: 20px;
-  transition: background-color 0.3s ease;
+  transition: all 0.2s ease;
+  width: 100%;
 }
 
-.game-over-modal button:hover {
-  background-color: #45a049;
+.game-over-modal button:active {
+  background-color: #3a7bc8;
+  transform: scale(0.98);
+}
+
+/* 连线效果 */
+.connection-line {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.7);
+  height: 6px;
+  border-radius: 3px;
+  transform-origin: left center;
+  pointer-events: none;
+  z-index: 1;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 移动端适配 */
+@media (max-width: 480px) {
+  .game-container {
+    padding: 12px;
+  }
+  
+  .game-info {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .score, .moves, .combo {
+    font-size: 14px;
+  }
+  
+  .energy-bar-container {
+    height: 20px;
+    margin-bottom: 16px;
+  }
+  
+  .game-board {
+    grid-gap: 6px;
+  }
+  
+  .special-icon {
+    font-size: 16px;
+  }
+  
+  .control-button {
+    padding: 10px;
+    font-size: 14px;
+  }
+  
+  .game-over-modal {
+    padding: 20px;
+  }
+  
+  .game-over-modal h2 {
+    font-size: 20px;
+  }
+  
+  .game-over-modal p {
+    font-size: 16px;
+    margin: 12px 0 20px;
+  }
+}
+
+/* 触摸反馈 */
+@media (hover: hover) {
+  .block:hover {
+    transform: scale(1.02);
+  }
+  
+  .control-button:hover {
+    background-color: #3a7bc8;
+  }
+  
+  .control-button:nth-child(2):hover {
+    background-color: #e1e1e1;
+  }
+  
+  .game-over-modal button:hover {
+    background-color: #3a7bc8;
+  }
+}
+
+/* 滑动连线相关样式 */
+.touch-indicator {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  pointer-events: none;
+  z-index: 10;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }

@@ -1,157 +1,334 @@
 .leaderboard {
-  background-color: #333;
-  border-radius: 10px;
+  background-color: white;
+  border-radius: 16px;
   padding: 20px;
   width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-}
-
-.leaderboard h2 {
-  margin-top: 0;
-  color: #61dafb;
-  text-align: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #555;
-  padding-bottom: 10px;
-}
-
-.leaderboard-tabs {
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   display: flex;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #444;
-}
-
-.leaderboard-tab {
-  flex: 1;
-  padding: 10px;
-  background: none;
-  border: none;
-  color: #aaa;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.leaderboard-tab.active {
-  color: #61dafb;
-  border-bottom: 2px solid #61dafb;
-}
-
-.leaderboard-list {
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .leaderboard-header {
   display: flex;
-  padding: 10px;
-  background-color: #444;
-  border-radius: 5px 5px 0 0;
-  font-weight: bold;
-  color: #ddd;
-}
-
-.leaderboard-entry {
-  display: flex;
-  padding: 12px 10px;
-  border-bottom: 1px solid #444;
-  transition: background-color 0.2s ease;
-}
-
-.leaderboard-entry:last-child {
-  border-bottom: none;
-  border-radius: 0 0 5px 5px;
-}
-
-.leaderboard-entry:hover {
-  background-color: #3a3a3a;
-}
-
-.leaderboard-entry.current-user {
-  background-color: rgba(97, 218, 251, 0.1);
-}
-
-.rank-column {
-  width: 60px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.name-column {
-  flex: 1;
-}
-
-.score-column {
-  width: 100px;
-  text-align: right;
-  font-weight: bold;
-  color: #ffd700;
-}
-
-.rank-badge {
-  display: inline-flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
+}
+
+.leaderboard-header h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #333;
+  font-weight: 700;
+}
+
+.time-filter {
+  display: flex;
+  background-color: #f1f1f1;
+  border-radius: 8px;
+  padding: 3px;
+}
+
+.time-button {
+  background: transparent;
+  border: none;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.time-button.active {
+  background-color: white;
+  color: #4a90e2;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.time-button:active {
+  opacity: 0.8;
+}
+
+.leaderboard-tabs {
+  display: flex;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 12px;
+}
+
+.tab-button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #666;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab-button.active {
+  background-color: white;
+  color: #4a90e2;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.tab-button:active {
+  opacity: 0.8;
+}
+
+.leaderboard-content {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: #ccc transparent;
+}
+
+.leaderboard-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.leaderboard-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaderboard-content::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 2px;
+}
+
+.user-list, .province-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-item, .province-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.user-item:active, .province-item:active {
+  background-color: #f1f1f1;
+}
+
+.user-item.current-user {
+  background-color: rgba(74, 144, 226, 0.1);
+  border: 1px solid #4a90e2;
+}
+
+.rank {
   width: 30px;
   height: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  font-weight: 700;
+}
+
+.rank-medal {
+  font-size: 20px;
+}
+
+.rank-number {
+  font-size: 16px;
+  color: #666;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #e1e1e1;
   border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.user-info, .province-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.user-name, .province-name {
+  font-weight: 600;
+  font-size: 15px;
   color: #333;
-  font-weight: bold;
+  margin-bottom: 2px;
 }
 
-.rank-1 {
-  background-color: #ffd700; /* 金色 */
+.user-level, .province-users {
+  font-size: 13px;
+  color: #666;
 }
 
-.rank-2 {
-  background-color: #c0c0c0; /* 银色 */
+.user-score, .province-score {
+  font-weight: 700;
+  font-size: 16px;
+  color: #4a90e2;
 }
 
-.rank-3 {
-  background-color: #cd7f32; /* 铜色 */
+.leaderboard-footer {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.no-data {
-  text-align: center;
-  padding: 20px;
-  color: #888;
-}
-
-.invite-friends, .province-info {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.invite-button, .challenge-button, .join-province-button {
-  background-color: #61dafb;
-  color: #333;
+.join-team-button, .share-button {
+  flex: 1;
+  background-color: #4a90e2;
+  color: white;
   border: none;
-  border-radius: 5px;
-  padding: 10px 20px;
-  font-weight: bold;
-  margin: 0 10px;
+  border-radius: 8px;
+  padding: 12px;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.invite-button:hover, .challenge-button:hover, .join-province-button:hover {
-  background-color: #4fa8c7;
-  transform: translateY(-2px);
+.share-button {
+  background-color: #f1f1f1;
+  color: #333;
 }
 
-.province-info p {
-  margin-bottom: 15px;
-  color: #aaa;
+.join-team-button:active, .share-button:active {
+  transform: scale(0.98);
 }
 
-.leaderboard-loading, .leaderboard-error {
-  text-align: center;
-  padding: 30px;
-  font-size: 18px;
+.join-team-button:active {
+  background-color: #3a7bc8;
 }
 
-.leaderboard-error {
-  color: #ff5252;
+.share-button:active {
+  background-color: #e1e1e1;
+}
+
+/* 动画效果 */
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.user-item, .province-item {
+  animation: slideIn 0.3s ease;
+  animation-fill-mode: both;
+}
+
+.user-item:nth-child(1), .province-item:nth-child(1) { animation-delay: 0.05s; }
+.user-item:nth-child(2), .province-item:nth-child(2) { animation-delay: 0.1s; }
+.user-item:nth-child(3), .province-item:nth-child(3) { animation-delay: 0.15s; }
+.user-item:nth-child(4), .province-item:nth-child(4) { animation-delay: 0.2s; }
+.user-item:nth-child(5), .province-item:nth-child(5) { animation-delay: 0.25s; }
+.user-item:nth-child(6), .province-item:nth-child(6) { animation-delay: 0.3s; }
+.user-item:nth-child(7), .province-item:nth-child(7) { animation-delay: 0.35s; }
+.user-item:nth-child(8), .province-item:nth-child(8) { animation-delay: 0.4s; }
+.user-item:nth-child(9), .province-item:nth-child(9) { animation-delay: 0.45s; }
+.user-item:nth-child(10), .province-item:nth-child(10) { animation-delay: 0.5s; }
+
+/* 移动端适配 */
+@media (max-width: 480px) {
+  .leaderboard {
+    padding: 16px;
+  }
+  
+  .leaderboard-header h2 {
+    font-size: 20px;
+  }
+  
+  .time-button {
+    padding: 5px 8px;
+    font-size: 12px;
+  }
+  
+  .tab-button {
+    padding: 8px;
+    font-size: 14px;
+  }
+  
+  .user-item, .province-item {
+    padding: 10px;
+  }
+  
+  .rank {
+    width: 26px;
+    height: 26px;
+    margin-right: 10px;
+  }
+  
+  .rank-medal {
+    font-size: 18px;
+  }
+  
+  .rank-number {
+    font-size: 14px;
+  }
+  
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+    margin-right: 10px;
+  }
+  
+  .user-name, .province-name {
+    font-size: 14px;
+  }
+  
+  .user-level, .province-users {
+    font-size: 12px;
+  }
+  
+  .user-score, .province-score {
+    font-size: 15px;
+  }
+  
+  .join-team-button, .share-button {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+/* 触摸反馈 */
+@media (hover: hover) {
+  .time-button:hover:not(.active) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .tab-button:hover:not(.active) {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  .user-item:hover, .province-item:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .join-team-button:hover {
+    background-color: #3a7bc8;
+  }
+  
+  .share-button:hover {
+    background-color: #e1e1e1;
+  }
 }

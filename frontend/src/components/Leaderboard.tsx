@@ -1,153 +1,179 @@
 import React from 'react';
-import { useState, useEffect } from 'react';
 import '../styles/Leaderboard.css';
 
-interface LeaderboardEntry {
-  rank: number;
-  userId: string;
-  username: string;
-  score: number;
+interface LeaderboardProps {
+  currentUserId: string;
 }
 
-interface LeaderboardProps {
-  currentUserId?: string;
+interface User {
+  id: string;
+  name: string;
+  avatar: string;
+  score: number;
+  level: number;
+  province: string;
 }
 
 const Leaderboard: React.FC<LeaderboardProps> = ({ currentUserId }) => {
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'friends' | 'global' | 'province'>('friends');
+  const [activeTab, setActiveTab] = React.useState<'friends' | 'global' | 'province'>('friends');
+  const [timeRange, setTimeRange] = React.useState<'daily' | 'weekly' | 'allTime'>('weekly');
 
-  useEffect(() => {
-    // 模拟从API获取排行榜数据
-    const fetchLeaderboard = async () => {
-      try {
-        setLoading(true);
-        // 实际项目中，这里应该是从后端API获取数据
-        // const response = await fetch(`http://localhost:3000/api/leaderboard?type=${activeTab}`);
-        // const data = await response.json();
-        
-        // 模拟数据
-        let mockData: LeaderboardEntry[] = [];
-        
-        if (activeTab === 'friends') {
-          mockData = [
-            { rank: 1, userId: 'user1', username: '好友张三', score: 9500 },
-            { rank: 2, userId: 'user2', username: '好友李四', score: 9200 },
-            { rank: 3, userId: 'user3', username: '好友王五', score: 8800 },
-            { rank: 4, userId: 'user4', username: '好友赵六', score: 8500 },
-            { rank: 5, userId: 'user5', username: '好友钱七', score: 8200 }
-          ];
-        } else if (activeTab === 'global') {
-          mockData = [
-            { rank: 1, userId: 'user10', username: '玩家10086', score: 12500 },
-            { rank: 2, userId: 'user11', username: '玩家8848', score: 12200 },
-            { rank: 3, userId: 'user12', username: '玩家7777', score: 11800 },
-            { rank: 4, userId: 'user13', username: '玩家6666', score: 11500 },
-            { rank: 5, userId: 'user14', username: '玩家5555', score: 11200 },
-            { rank: 6, userId: 'user15', username: '玩家4444', score: 10900 },
-            { rank: 7, userId: 'user16', username: '玩家3333', score: 10600 },
-            { rank: 8, userId: 'user17', username: '玩家2222', score: 10300 },
-            { rank: 9, userId: 'user18', username: '玩家1111', score: 10000 },
-            { rank: 10, userId: 'user19', username: '玩家0000', score: 9700 }
-          ];
-        } else if (activeTab === 'province') {
-          mockData = [
-            { rank: 1, userId: 'province1', username: '北京', score: 125000 },
-            { rank: 2, userId: 'province2', username: '上海', score: 120000 },
-            { rank: 3, userId: 'province3', username: '广东', score: 118000 },
-            { rank: 4, userId: 'province4', username: '四川', score: 105000 },
-            { rank: 5, userId: 'province5', username: '浙江', score: 98000 }
-          ];
-        }
-        
-        setLeaderboardData(mockData);
-        setLoading(false);
-      } catch (err) {
-        setError('无法加载排行榜数据');
-        setLoading(false);
-      }
-    };
+  // 模拟数据
+  const friendsData: User[] = [
+    { id: 'user1', name: '张三', avatar: '👨', score: 12500, level: 42, province: '北京' },
+    { id: 'user2', name: '李四', avatar: '👩', score: 10800, level: 38, province: '上海' },
+    { id: 'user3', name: '王五', avatar: '👦', score: 9200, level: 35, province: '广州' },
+    { id: 'user4', name: '赵六', avatar: '👧', score: 8500, level: 30, province: '深圳' },
+    { id: 'user5', name: '钱七', avatar: '👴', score: 7800, level: 28, province: '杭州' },
+    { id: 'user6', name: '孙八', avatar: '👵', score: 6500, level: 25, province: '成都' },
+    { id: 'user7', name: '周九', avatar: '👲', score: 5200, level: 20, province: '武汉' },
+    { id: 'user8', name: '吴十', avatar: '👳', score: 4800, level: 18, province: '南京' },
+  ];
 
-    fetchLeaderboard();
-  }, [activeTab]);
+  const globalData: User[] = [
+    { id: 'global1', name: '游戏达人', avatar: '👑', score: 25000, level: 80, province: '北京' },
+    { id: 'global2', name: '消除王者', avatar: '🏆', score: 22000, level: 75, province: '上海' },
+    { id: 'global3', name: '方块大师', avatar: '🥇', score: 20000, level: 70, province: '广州' },
+    { id: 'user1', name: '张三', avatar: '👨', score: 12500, level: 42, province: '北京' },
+    { id: 'global4', name: '消除达人', avatar: '🥈', score: 18000, level: 65, province: '深圳' },
+    { id: 'global5', name: '游戏高手', avatar: '🥉', score: 16000, level: 60, province: '杭州' },
+    { id: 'global6', name: '方块能手', avatar: '🎮', score: 15000, level: 55, province: '成都' },
+    { id: 'global7', name: '消除新星', avatar: '⭐', score: 14000, level: 50, province: '武汉' },
+    { id: 'global8', name: '游戏精英', avatar: '🌟', score: 13000, level: 45, province: '南京' },
+    { id: 'user2', name: '李四', avatar: '👩', score: 10800, level: 38, province: '上海' },
+  ];
 
-  if (loading) {
-    return <div className="leaderboard-loading">加载排行榜数据...</div>;
-  }
+  const provinceData: { name: string; score: number; users: number }[] = [
+    { name: '北京', score: 1250000, users: 12500 },
+    { name: '上海', score: 1180000, users: 11800 },
+    { name: '广州', score: 980000, users: 9800 },
+    { name: '深圳', score: 920000, users: 9200 },
+    { name: '杭州', score: 850000, users: 8500 },
+    { name: '成都', score: 780000, users: 7800 },
+    { name: '武汉', score: 720000, users: 7200 },
+    { name: '南京', score: 680000, users: 6800 },
+    { name: '重庆', score: 650000, users: 6500 },
+    { name: '西安', score: 620000, users: 6200 },
+  ];
 
-  if (error) {
-    return <div className="leaderboard-error">{error}</div>;
-  }
+  // 根据当前选择的时间范围获取数据
+  const getDataByTimeRange = () => {
+    if (activeTab === 'friends') {
+      return friendsData;
+    } else if (activeTab === 'global') {
+      return globalData;
+    } else {
+      return provinceData;
+    }
+  };
+
+  const data = getDataByTimeRange();
 
   return (
     <div className="leaderboard">
-      <h2>排行榜</h2>
-      
+      <div className="leaderboard-header">
+        <h2>排行榜</h2>
+        <div className="time-filter">
+          <button 
+            className={`time-button ${timeRange === 'daily' ? 'active' : ''}`}
+            onClick={() => setTimeRange('daily')}
+          >
+            日榜
+          </button>
+          <button 
+            className={`time-button ${timeRange === 'weekly' ? 'active' : ''}`}
+            onClick={() => setTimeRange('weekly')}
+          >
+            周榜
+          </button>
+          <button 
+            className={`time-button ${timeRange === 'allTime' ? 'active' : ''}`}
+            onClick={() => setTimeRange('allTime')}
+          >
+            总榜
+          </button>
+        </div>
+      </div>
+
       <div className="leaderboard-tabs">
         <button 
-          className={`leaderboard-tab ${activeTab === 'friends' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'friends' ? 'active' : ''}`}
           onClick={() => setActiveTab('friends')}
         >
-          好友排行
+          好友榜
         </button>
         <button 
-          className={`leaderboard-tab ${activeTab === 'global' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'global' ? 'active' : ''}`}
           onClick={() => setActiveTab('global')}
         >
-          全球排行
+          全球榜
         </button>
         <button 
-          className={`leaderboard-tab ${activeTab === 'province' ? 'active' : ''}`}
+          className={`tab-button ${activeTab === 'province' ? 'active' : ''}`}
           onClick={() => setActiveTab('province')}
         >
-          省份战队
+          省份榜
         </button>
       </div>
-      
-      <div className="leaderboard-list">
-        <div className="leaderboard-header">
-          <div className="rank-column">排名</div>
-          <div className="name-column">名称</div>
-          <div className="score-column">分数</div>
-        </div>
-        
-        {leaderboardData.map((entry) => (
-          <div 
-            key={entry.userId} 
-            className={`leaderboard-entry ${currentUserId === entry.userId ? 'current-user' : ''}`}
-          >
-            <div className="rank-column">
-              {entry.rank <= 3 ? (
-                <div className={`rank-badge rank-${entry.rank}`}>{entry.rank}</div>
-              ) : (
-                entry.rank
-              )}
-            </div>
-            <div className="name-column">{entry.username}</div>
-            <div className="score-column">{entry.score.toLocaleString()}</div>
+
+      <div className="leaderboard-content">
+        {activeTab !== 'province' ? (
+          <div className="user-list">
+            {(data as User[]).map((user, index) => (
+              <div 
+                key={user.id} 
+                className={`user-item ${user.id === currentUserId ? 'current-user' : ''}`}
+              >
+                <div className="rank">
+                  {index < 3 ? (
+                    <span className={`rank-medal rank-${index + 1}`}>
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                    </span>
+                  ) : (
+                    <span className="rank-number">{index + 1}</span>
+                  )}
+                </div>
+                <div className="user-avatar">{user.avatar}</div>
+                <div className="user-info">
+                  <div className="user-name">{user.name}</div>
+                  <div className="user-level">Lv.{user.level}</div>
+                </div>
+                <div className="user-score">{user.score.toLocaleString()}</div>
+              </div>
+            ))}
           </div>
-        ))}
-        
-        {leaderboardData.length === 0 && (
-          <div className="no-data">暂无排行数据</div>
+        ) : (
+          <div className="province-list">
+            {(data as { name: string; score: number; users: number }[]).map((province, index) => (
+              <div key={province.name} className="province-item">
+                <div className="rank">
+                  {index < 3 ? (
+                    <span className={`rank-medal rank-${index + 1}`}>
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                    </span>
+                  ) : (
+                    <span className="rank-number">{index + 1}</span>
+                  )}
+                </div>
+                <div className="province-info">
+                  <div className="province-name">{province.name}</div>
+                  <div className="province-users">{province.users.toLocaleString()}名玩家</div>
+                </div>
+                <div className="province-score">{province.score.toLocaleString()}</div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
-      
-      {activeTab === 'friends' && (
-        <div className="invite-friends">
-          <button className="invite-button">邀请好友</button>
-          <button className="challenge-button">挑战好友</button>
-        </div>
-      )}
-      
-      {activeTab === 'province' && (
-        <div className="province-info">
-          <p>加入省份战队，为家乡贡献分数！</p>
-          <button className="join-province-button">选择我的省份</button>
-        </div>
-      )}
+
+      <div className="leaderboard-footer">
+        <button className="join-team-button">
+          加入我的省份战队
+        </button>
+        <button className="share-button">
+          分享我的排名
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,0 +1,141 @@
+.wx-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.wx-dialog-backdrop.closing {
+  animation: fadeOut 0.2s ease forwards;
+}
+
+.wx-dialog {
+  background-color: white;
+  border-radius: 12px;
+  width: 85%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: scaleIn 0.2s ease;
+}
+
+.wx-dialog.closing {
+  animation: scaleOut 0.2s ease forwards;
+}
+
+.wx-dialog-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.wx-dialog-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.wx-dialog-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.wx-dialog-close:active {
+  background-color: #f0f0f0;
+  color: #666;
+}
+
+.wx-dialog-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+
+.wx-dialog-actions {
+  padding: 12px 20px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes scaleOut {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
+}
+
+/* 移动端适配 */
+@media (max-width: 480px) {
+  .wx-dialog {
+    width: 92%;
+    max-height: 85vh;
+  }
+  
+  .wx-dialog-header {
+    padding: 14px 16px;
+  }
+  
+  .wx-dialog-title {
+    font-size: 16px;
+  }
+  
+  .wx-dialog-content {
+    padding: 16px;
+  }
+  
+  .wx-dialog-actions {
+    padding: 10px 16px 16px;
+  }
+}
+
+/* 触摸反馈 */
+@media (hover: hover) {
+  .wx-dialog-close:hover {
+    background-color: #f0f0f0;
+    color: #666;
+  }
+}

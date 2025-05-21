@@ -1,16 +1,15 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import '../styles/ItemShop.css';
 
 interface Item {
   id: string;
   name: string;
   description: string;
+  icon: string;
   price: {
-    type: string;
-    amount?: number;
+    type: 'coins' | 'gems';
+    amount: number;
   };
-  imageUrl: string;
 }
 
 interface ItemShopProps {
@@ -20,135 +19,172 @@ interface ItemShopProps {
 }
 
 const ItemShop: React.FC<ItemShopProps> = ({ coins, gems, onPurchase }) => {
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState<'items' | 'skins'>('items');
+  const [activeCategory, setActiveCategory] = useState<'items' | 'skins'>('items');
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
-  useEffect(() => {
-    // 模拟从API获取商店数据
-    const fetchItems = async () => {
-      try {
-        setLoading(true);
-        // 实际项目中，这里应该是从后端API获取数据
-        // const response = await fetch('http://localhost:3000/api/store/items');
-        // const data = await response.json();
-        
-        // 模拟数据
-        const mockItems = [
-          { id: 'item1', name: '悔棋', description: '撤销上一步操作', price: { type: 'coins', amount: 50 }, imageUrl: '/assets/items/undo.png' },
-          { id: 'item2', name: '刷新', description: '重新排列所有方块', price: { type: 'coins', amount: 100 }, imageUrl: '/assets/items/refresh.png' },
-          { id: 'item3', name: '指定消除', description: '消除指定方块', price: { type: 'gems', amount: 5 }, imageUrl: '/assets/items/remove.png' },
-          { id: 'item4', name: '时间延长', description: '延长关卡时间30秒', price: { type: 'gems', amount: 10 }, imageUrl: '/assets/items/time.png' },
-          { id: 'item5', name: '能量加速', description: '能量槽充能速度提升50%', price: { type: 'gems', amount: 15 }, imageUrl: '/assets/items/energy.png' }
-        ];
-        
-        setItems(mockItems);
-        setLoading(false);
-      } catch (err) {
-        setError('无法加载商店数据');
-        setLoading(false);
-      }
-    };
+  // 道具数据
+  const items: Item[] = [
+    {
+      id: 'item1',
+      name: '重排',
+      description: '重新排列所有方块',
+      icon: '🔄',
+      price: { type: 'coins', amount: 100 }
+    },
+    {
+      id: 'item2',
+      name: '炸弹',
+      description: '获得一个炸弹方块',
+      icon: '💣',
+      price: { type: 'coins', amount: 150 }
+    },
+    {
+      id: 'item3',
+      name: '彩虹',
+      description: '获得一个彩虹方块',
+      icon: '🌈',
+      price: { type: 'gems', amount: 5 }
+    },
+    {
+      id: 'item4',
+      name: '直线',
+      description: '获得一个直线方块',
+      icon: '⚡',
+      price: { type: 'coins', amount: 200 }
+    },
+    {
+      id: 'item5',
+      name: '+5步',
+      description: '增加5步移动次数',
+      icon: '👣',
+      price: { type: 'gems', amount: 10 }
+    },
+    {
+      id: 'item6',
+      name: '能量+50%',
+      description: '立即增加50%能量',
+      icon: '⚡',
+      price: { type: 'coins', amount: 250 }
+    }
+  ];
 
-    fetchItems();
-  }, [selectedTab]);
+  // 皮肤数据
+  const skins: Item[] = [
+    {
+      id: 'skin1',
+      name: '经典主题',
+      description: '默认游戏主题',
+      icon: '🎮',
+      price: { type: 'coins', amount: 0 }
+    },
+    {
+      id: 'skin2',
+      name: '太空主题',
+      description: '星空背景与行星方块',
+      icon: '🚀',
+      price: { type: 'gems', amount: 20 }
+    },
+    {
+      id: 'skin3',
+      name: '海洋主题',
+      description: '海底世界与海洋生物',
+      icon: '🐠',
+      price: { type: 'gems', amount: 20 }
+    },
+    {
+      id: 'skin4',
+      name: '糖果主题',
+      description: '缤纷糖果与甜点',
+      icon: '🍭',
+      price: { type: 'gems', amount: 20 }
+    }
+  ];
 
   const handlePurchase = (item: Item) => {
-    // 检查玩家是否有足够的货币
-    if (item.price.type === 'coins' && item.price.amount && coins >= item.price.amount) {
-      onPurchase(item);
-    } else if (item.price.type === 'gems' && item.price.amount && gems >= item.price.amount) {
-      onPurchase(item);
-    } else {
-      alert('货币不足，无法购买');
+    if (item.price.type === 'coins' && item.price.amount > coins) {
+      alert('金币不足！');
+      return;
     }
+    if (item.price.type === 'gems' && item.price.amount > gems) {
+      alert('钻石不足！');
+      return;
+    }
+    
+    onPurchase(item);
   };
 
-  const renderPrice = (price: { type: string; amount?: number }) => {
-    if (price.type === 'free') {
-      return <span className="item-price free">免费</span>;
-    } else if (price.type === 'coins') {
-      return (
-        <span className={`item-price coins ${coins < (price.amount || 0) ? 'insufficient' : ''}`}>
-          {price.amount} 金币
-        </span>
-      );
-    } else if (price.type === 'gems') {
-      return (
-        <span className={`item-price gems ${gems < (price.amount || 0) ? 'insufficient' : ''}`}>
-          {price.amount} 钻石
-        </span>
-      );
-    }
-    return null;
+  const handleItemClick = (item: Item) => {
+    setSelectedItem(item);
   };
-
-  if (loading) {
-    return <div className="shop-loading">加载商店数据...</div>;
-  }
-
-  if (error) {
-    return <div className="shop-error">{error}</div>;
-  }
 
   return (
     <div className="item-shop">
       <div className="shop-header">
-        <h2>商店</h2>
         <div className="currency-display">
-          <div className="currency coins">
+          <div className="currency">
             <span className="currency-icon">🪙</span>
             <span className="currency-amount">{coins}</span>
           </div>
-          <div className="currency gems">
+          <div className="currency">
             <span className="currency-icon">💎</span>
             <span className="currency-amount">{gems}</span>
           </div>
         </div>
+        <button className="add-currency-button">充值</button>
       </div>
 
-      <div className="shop-tabs">
+      <div className="shop-categories">
         <button 
-          className={`shop-tab ${selectedTab === 'items' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('items')}
+          className={`category-button ${activeCategory === 'items' ? 'active' : ''}`}
+          onClick={() => setActiveCategory('items')}
         >
           道具
         </button>
         <button 
-          className={`shop-tab ${selectedTab === 'skins' ? 'active' : ''}`}
-          onClick={() => setSelectedTab('skins')}
+          className={`category-button ${activeCategory === 'skins' ? 'active' : ''}`}
+          onClick={() => setActiveCategory('skins')}
         >
           皮肤
         </button>
       </div>
 
       <div className="shop-items">
-        {items.map(item => (
-          <div key={item.id} className="shop-item">
-            <div className="item-image">
-              {/* 实际项目中应该使用真实图片 */}
-              <div className="placeholder-image">{item.name.charAt(0)}</div>
-            </div>
+        {(activeCategory === 'items' ? items : skins).map(item => (
+          <div 
+            key={item.id} 
+            className={`shop-item ${selectedItem?.id === item.id ? 'selected' : ''}`}
+            onClick={() => handleItemClick(item)}
+          >
+            <div className="item-icon">{item.icon}</div>
             <div className="item-info">
-              <h3 className="item-name">{item.name}</h3>
-              <p className="item-description">{item.description}</p>
-              {renderPrice(item.price)}
+              <div className="item-name">{item.name}</div>
+              <div className="item-price">
+                <span className="price-icon">{item.price.type === 'coins' ? '🪙' : '💎'}</span>
+                <span className="price-amount">{item.price.amount}</span>
+              </div>
             </div>
-            <button 
-              className="purchase-button"
-              onClick={() => handlePurchase(item)}
-              disabled={
-                (item.price.type === 'coins' && item.price.amount && coins < item.price.amount) || 
-                (item.price.type === 'gems' && item.price.amount && gems < item.price.amount) ? 
-                true : false
-              }
-            >
-              购买
-            </button>
           </div>
         ))}
       </div>
+
+      {selectedItem && (
+        <div className="item-details">
+          <h3>{selectedItem.name}</h3>
+          <p>{selectedItem.description}</p>
+          <div className="item-price-large">
+            <span className="price-icon-large">{selectedItem.price.type === 'coins' ? '🪙' : '💎'}</span>
+            <span className="price-amount-large">{selectedItem.price.amount}</span>
+          </div>
+          <button 
+            className="purchase-button"
+            onClick={() => handlePurchase(selectedItem)}
+            disabled={(selectedItem.price.type === 'coins' && selectedItem.price.amount > coins) || 
+                     (selectedItem.price.type === 'gems' && selectedItem.price.amount > gems)}
+          >
+            购买
+          </button>
+        </div>
+      )}
     </div>
   );
 };
