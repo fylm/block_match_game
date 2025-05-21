@@ -187,11 +187,14 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
       const current = currentPath[i];
       const next = currentPath[i + 1];
       
-      // 计算方块中心位置
-      const x1 = (current.col * (blockSize + 8)) + (blockSize / 2) + 12; // 12是board的padding
-      const y1 = (current.row * (blockSize + 8)) + (blockSize / 2) + 12;
-      const x2 = (next.col * (blockSize + 8)) + (blockSize / 2) + 12;
-      const y2 = (next.row * (blockSize + 8)) + (blockSize / 2) + 12;
+      // 计算方块中心位置 - 修正计算方式，确保精确定位
+      const gap = 8; // 间隙大小
+      const padding = 12; // board的padding
+      
+      const x1 = (current.col * (blockSize + gap)) + (blockSize / 2) + padding;
+      const y1 = (current.row * (blockSize + gap)) + (blockSize / 2) + padding;
+      const x2 = (next.col * (blockSize + gap)) + (blockSize / 2) + padding;
+      const y2 = (next.row * (blockSize + gap)) + (blockSize / 2) + padding;
       
       // 计算角度和长度
       const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
@@ -224,7 +227,7 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
           width: `${line.length}px`,
           transform: `rotate(${line.angle}deg)`,
           backgroundColor: line.color,
-          boxShadow: `0 0 10px ${line.color}`
+          boxShadow: `0 0 15px ${line.color}` // 增强光晕效果
         }}
       />
     ));
@@ -233,9 +236,12 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
   // 渲染选中方块指示器
   const renderSelectedBlocks = () => {
     return path.map((block, index) => {
-      // 计算方块位置
-      const left = (block.col * (blockSize + 8)) + 12; // 12是board的padding
-      const top = (block.row * (blockSize + 8)) + 12;
+      // 计算方块位置 - 修正计算方式，确保精确定位
+      const gap = 8; // 间隙大小
+      const padding = 12; // board的padding
+      
+      const left = (block.col * (blockSize + gap)) + padding;
+      const top = (block.row * (blockSize + gap)) + padding;
       
       return (
         <div
@@ -247,7 +253,7 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
             width: `${blockSize}px`,
             height: `${blockSize}px`,
             borderColor: blockColors[block.row][block.col],
-            boxShadow: `0 0 10px ${blockColors[block.row][block.col]}`
+            boxShadow: `0 0 15px ${blockColors[block.row][block.col]}` // 增强光晕效果
           }}
         />
       );
@@ -298,9 +304,12 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
       {/* 渲染方块触摸区域 */}
       {Array.from({ length: rows }).map((_, row) => (
         Array.from({ length: cols }).map((_, col) => {
-          // 计算方块位置
-          const left = (col * (blockSize + 8)) + 12; // 12是board的padding
-          const top = (row * (blockSize + 8)) + 12;
+          // 计算方块位置 - 修正计算方式，确保精确定位
+          const gap = 8; // 间隙大小
+          const padding = 12; // board的padding
+          
+          const left = (col * (blockSize + gap)) + padding;
+          const top = (row * (blockSize + gap)) + padding;
           
           // 检查是否为特殊方块
           const isSpecial = specialBlocks.some(

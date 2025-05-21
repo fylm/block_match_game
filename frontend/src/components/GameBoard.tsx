@@ -33,8 +33,8 @@ interface Block {
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({ 
-  rows = 8, 
-  cols = 8, 
+  rows = 8, // 使用传入的行数，默认为8
+  cols = 8, // 使用传入的列数，默认为8
   onScoreChange, 
   onEnergyChange,
   onOpenSettings
@@ -97,7 +97,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     return () => {
       window.removeEventListener('resize', updateBlockSize);
     };
-  }, []);
+  }, [rows, cols]); // 添加rows和cols作为依赖项，确保行列数变化时重新初始化
 
   // 监听能量变化
   useEffect(() => {
@@ -124,6 +124,7 @@ const GameBoard: React.FC<GameBoardProps> = ({
     const newBlockColors: string[][] = [];
     const newSpecialBlocks: {row: number, col: number, type: string}[] = [];
     
+    // 确保生成的方块数组严格按照rows和cols的大小
     for (let i = 0; i < rows; i++) {
       const row: Block[] = [];
       const colorRow: string[] = [];
@@ -483,6 +484,11 @@ const GameBoard: React.FC<GameBoardProps> = ({
     );
   };
 
+  // 确保blocks数组已初始化
+  if (blocks.length === 0) {
+    return <div className="loading">加载中...</div>;
+  }
+
   return (
     <div className="game-container">
       <div className="game-header">
@@ -529,10 +535,17 @@ const GameBoard: React.FC<GameBoardProps> = ({
       <div 
         className="game-board"
         ref={boardRef}
+        style={{
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`
+        }}
       >
-        {blocks.map((row, rowIndex) => (
-          row.map((block, colIndex) => (
-            renderBlock(block, rowIndex, colIndex)
+        {/* 使用双重循环确保按行列顺序渲染，避免方块错乱 */}
+        {Array.from({ length: rows }).map((_, rowIndex) => (
+          Array.from({ length: cols }).map((_, colIndex) => (
+            blocks[rowIndex] && blocks[rowIndex][colIndex] ? 
+              renderBlock(blocks[rowIndex][colIndex], rowIndex, colIndex) : 
+              <div key={`empty-${rowIndex}-${colIndex}`} className="block empty-block"></div>
           ))
         ))}
         

@@ -5,175 +5,79 @@
   width: 100%;
   height: 100%;
   z-index: 10;
-  touch-action: none;
   pointer-events: none;
 }
 
 .block-touch-area {
   position: absolute;
   border-radius: 8px;
-  z-index: 20;
   pointer-events: auto;
   cursor: pointer;
+  z-index: 3;
   -webkit-tap-highlight-color: transparent;
 }
 
 .block-touch-area.special {
-  z-index: 21;
+  z-index: 4;
 }
 
 .path-segment {
   position: absolute;
-  height: 10px; /* 增加线条宽度 */
+  height: 10px; /* 增加线宽 */
   background-color: rgba(255, 255, 255, 0.9); /* 增加不透明度 */
   border-radius: 5px;
   transform-origin: left center;
   pointer-events: none;
-  z-index: 25;
+  z-index: 5;
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.8); /* 增强光晕效果 */
   transition: all 0.2s ease;
-  animation: pathPulse 1.5s infinite; /* 添加脉冲动画 */
-}
-
-@keyframes pathPulse {
-  0% { opacity: 0.9; height: 10px; }
-  50% { opacity: 1; height: 12px; }
-  100% { opacity: 0.9; height: 10px; }
-}
-
-.path-segment.complete {
-  animation: pathComplete 0.5s forwards;
-}
-
-.path-segment.error {
-  background-color: rgba(255, 0, 0, 0.8) !important;
-  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8) !important;
-  animation: pathError 0.3s infinite;
-}
-
-@keyframes pathComplete {
-  0% { opacity: 1; height: 10px; }
-  100% { opacity: 0; height: 20px; }
-}
-
-@keyframes pathError {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
+  animation: pathGlow 1.5s infinite; /* 添加脉冲动画 */
 }
 
 .selected-block-indicator {
   position: absolute;
-  border: 3px solid rgba(255, 255, 255, 0.9);
+  border: 3px solid;
   border-radius: 8px;
   pointer-events: none;
-  z-index: 15;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+  z-index: 4;
   animation: selectedPulse 1.5s infinite;
 }
 
-@keyframes selectedPulse {
-  0% { 
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  }
-  50% { 
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
-  }
-  100% { 
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
-  }
-}
-
 .touch-indicator {
-  position: fixed;
-  width: 30px;
-  height: 30px;
+  position: absolute;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.7);
   pointer-events: none;
-  z-index: 30;
+  z-index: 10;
   transform: translate(-50%, -50%);
-  box-shadow: 0 0 20px rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.9);
   animation: touchPulse 1s infinite;
 }
 
+@keyframes pathGlow {
+  0% { opacity: 0.9; box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+  50% { opacity: 1; box-shadow: 0 0 20px rgba(255, 255, 255, 0.9); }
+  100% { opacity: 0.9; box-shadow: 0 0 10px rgba(255, 255, 255, 0.7); }
+}
+
+@keyframes selectedPulse {
+  0% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8), 0 4px 10px rgba(0, 0, 0, 0.2); }
+  50% { box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9), 0 6px 15px rgba(0, 0, 0, 0.25); }
+  100% { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.8), 0 4px 10px rgba(0, 0, 0, 0.2); }
+}
+
 @keyframes touchPulse {
-  0% { 
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.7;
-    background-color: rgba(255, 255, 255, 0.3);
-  }
-  50% { 
-    transform: translate(-50%, -50%) scale(1.3);
-    opacity: 0.9;
-    background-color: rgba(255, 255, 255, 0.5);
-  }
-  100% { 
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.7;
-    background-color: rgba(255, 255, 255, 0.3);
-  }
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.7; }
 }
 
-/* 添加流光效果 */
-.path-segment::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, 
-    rgba(255, 255, 255, 0) 0%, 
-    rgba(255, 255, 255, 0.8) 50%, 
-    rgba(255, 255, 255, 0) 100%);
-  animation: flowLight 1.5s infinite linear;
-  border-radius: 5px;
-}
-
-@keyframes flowLight {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-/* 增强选中方块的视觉效果 */
-.selected-block-indicator::before {
-  content: '';
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  right: -5px;
-  bottom: -5px;
-  border-radius: 12px;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.3) 0%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  z-index: -1;
-  animation: glowPulse 2s infinite;
-}
-
-@keyframes glowPulse {
-  0% { opacity: 0.3; }
-  50% { opacity: 0.6; }
-  100% { opacity: 0.3; }
-}
-
-/* 移动端优化 */
+/* 移动端适配 */
 @media (max-width: 480px) {
   .path-segment {
-    height: 8px;
-    border-radius: 4px;
-  }
-  
-  @keyframes pathPulse {
-    0% { opacity: 0.9; height: 8px; }
-    50% { opacity: 1; height: 10px; }
-    100% { opacity: 0.9; height: 8px; }
+    height: 8px; /* 小屏幕上稍微减小线宽 */
   }
   
   .selected-block-indicator {
@@ -181,7 +85,14 @@
   }
   
   .touch-indicator {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* 超小屏幕适配 */
+@media (max-width: 360px) {
+  .path-segment {
+    height: 6px; /* 超小屏幕上进一步减小线宽 */
   }
 }
