@@ -10,6 +10,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  max-height: 90vh; /* 限制最大高度 */
 }
 
 @keyframes slideIn {
@@ -413,6 +414,13 @@
 
 /* 移动端优化 */
 @media (max-width: 480px) {
+  .settings-page {
+    max-width: 100%;
+    border-radius: 12px;
+    max-height: 100vh;
+    margin: 0;
+  }
+  
   .settings-header {
     padding: 12px 16px;
   }
@@ -421,8 +429,17 @@
     padding: 0;
   }
   
+  .adm-tabs-header {
+    padding: 0 12px;
+  }
+  
+  .adm-tabs-tab {
+    padding: 10px 0;
+    font-size: 15px;
+  }
+  
   .adm-tabs-content {
-    padding: 16px;
+    padding: 12px;
   }
   
   .back-button {
@@ -437,6 +454,12 @@
   
   .settings-section-title {
     font-size: 15px;
+    margin-bottom: 12px;
+  }
+  
+  .settings-info-card,
+  .settings-rule-card {
+    padding: 12px;
   }
   
   .info-label {
@@ -470,8 +493,12 @@
     transform: translateX(20px);
   }
   
+  .navigation-buttons {
+    gap: 8px;
+  }
+  
   .navigation-button {
-    padding: 12px;
+    padding: 10px;
   }
   
   .navigation-button svg {
@@ -482,6 +509,67 @@
   
   .navigation-button span {
     font-size: 13px;
+  }
+}
+
+/* 特别针对小屏幕手机的优化 */
+@media (max-width: 360px) {
+  .settings-page {
+    border-radius: 8px;
+  }
+  
+  .settings-header {
+    padding: 10px 12px;
+  }
+  
+  .back-button {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+  }
+  
+  .settings-header h2 {
+    font-size: 16px;
+  }
+  
+  .adm-tabs-tab {
+    padding: 8px 0;
+    font-size: 14px;
+  }
+  
+  .adm-tabs-content {
+    padding: 10px;
+  }
+  
+  .settings-section-title {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  
+  .info-label, .option-label {
+    font-size: 13px;
+  }
+  
+  .info-value {
+    font-size: 14px;
+  }
+  
+  .settings-rule-card p {
+    font-size: 13px;
+  }
+  
+  .navigation-button {
+    padding: 8px;
+  }
+  
+  .navigation-button svg {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 4px;
+  }
+  
+  .navigation-button span {
+    font-size: 12px;
   }
 }
 
