@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import '../../styles/core/SwipeConnector.css';
+import React from 'react';
+import { Swiper, Toast, SpinLoading } from 'antd-mobile';
+import '../styles/core/SwipeConnector.css';
 
 interface SwipeConnectorProps {
   rows: number;
@@ -23,16 +24,16 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
   specialBlocks = []
 }) => {
   // 当前路径状态
-  const [currentPath, setCurrentPath] = useState<{row: number, col: number}[]>([]);
+  const [currentPath, setCurrentPath] = React.useState<{row: number, col: number}[]>([]);
   // 触摸状态
-  const [isTouching, setIsTouching] = useState(false);
+  const [isTouching, setIsTouching] = React.useState(false);
   // 当前触摸位置（用于绘制指示器）
-  const [touchPosition, setTouchPosition] = useState<{x: number, y: number} | null>(null);
+  const [touchPosition, setTouchPosition] = React.useState<{x: number, y: number} | null>(null);
   // 是否显示错误提示
-  const [showError, setShowError] = useState(false);
+  const [showError, setShowError] = React.useState(false);
   
   // 引用容器元素
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   
   // 处理触摸开始
   const handleTouchStart = (e: React.TouchEvent, row: number, col: number) => {
@@ -53,6 +54,11 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
         x: touch.clientX - rect.left,
         y: touch.clientY - rect.top
       });
+    }
+    
+    // 触感反馈
+    if (navigator.vibrate) {
+      navigator.vibrate(10);
     }
   };
   
@@ -105,6 +111,11 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
         if (isAdjacent && (isColorMatch || isCurrentSpecial || isLastSpecial) && !isAlreadyInPath) {
           setCurrentPath([...currentPath, {row, col}]);
           setShowError(false);
+          
+          // 轻微触感反馈
+          if (navigator.vibrate) {
+            navigator.vibrate(5);
+          }
         } 
         // 如果是路径中倒数第二个方块，允许返回（撤销最后一步）
         else if (currentPath.length > 1 && 
@@ -116,6 +127,12 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
         // 如果是无效移动，显示错误提示
         else if (isAdjacent && !isAlreadyInPath) {
           setShowError(true);
+          
+          // 错误触感反馈
+          if (navigator.vibrate) {
+            navigator.vibrate([20, 30, 20]);
+          }
+          
           setTimeout(() => setShowError(false), 500);
         }
       }
@@ -129,6 +146,11 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     // 如果路径长度达到最小要求，触发回调
     if (currentPath.length >= minPathLength) {
       onPathComplete(currentPath);
+      
+      // 成功触感反馈
+      if (navigator.vibrate) {
+        navigator.vibrate([10, 30, 10, 30, 10]);
+      }
       
       // 添加成功动画类
       const pathElements = document.querySelectorAll('.path-segment');
@@ -144,15 +166,35 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
         setTouchPosition(null);
         setIsTouching(false);
       }, currentPath.length * 50 + 200);
-    } else {
+    } else if (currentPath.length > 0) {
       // 路径太短，显示错误提示
       setShowError(true);
+      
+      // 错误触感反馈
+      if (navigator.vibrate) {
+        navigator.vibrate([30, 50, 30]);
+      }
+      
+      // 显示Toast提示
+      if (currentPath.length > 1) {
+        Toast.show({
+          content: `至少需要${minPathLength}个相同颜色的方块`,
+          position: 'center',
+          duration: 1000,
+        });
+      }
+      
       setTimeout(() => {
         setShowError(false);
         setCurrentPath([]);
         setTouchPosition(null);
         setIsTouching(false);
       }, 500);
+    } else {
+      // 重置状态
+      setCurrentPath([]);
+      setTouchPosition(null);
+      setIsTouching(false);
     }
   };
   
@@ -232,6 +274,17 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     ));
   };
   
+  // 渲染加载状态
+  const renderLoading = () => {
+    if (isEnabled) return null;
+    
+    return (
+      <div className="swipe-connector-loading">
+        <SpinLoading color='primary' />
+      </div>
+    );
+  };
+  
   return (
     <div 
       ref={containerRef}
@@ -248,6 +301,7 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
       {renderPathSegments()}
       {renderSelectedBlocks()}
       {renderTouchIndicator()}
+      {renderLoading()}
       
       {/* 触摸区域覆盖层 - 用于捕获触摸事件 */}
       <div className="touch-overlay">

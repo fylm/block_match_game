@@ -24,13 +24,15 @@
 
 .touch-area {
   flex: 1;
+  /* 增加触摸区域，提高移动端操作精度 */
+  position: relative;
 }
 
 /* 路径线段 */
 .path-segment {
   position: absolute;
-  height: 6px;
-  border-radius: 3px;
+  height: 8px; /* 增加线条粗细，提高移动端可见性 */
+  border-radius: 4px;
   transform-origin: left center;
   z-index: 5;
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -65,13 +67,27 @@
 /* 触摸指示器 */
 .touch-indicator {
   position: absolute;
-  width: 24px;
-  height: 24px;
+  width: 28px; /* 增大触摸指示器尺寸 */
+  height: 28px;
   border-radius: 50%;
   transform: translate(-50%, -50%);
   z-index: 20;
   pointer-events: none;
   opacity: 0.7;
+}
+
+/* 加载状态 */
+.swipe-connector-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  z-index: 30;
 }
 
 /* 动画效果 */
@@ -109,4 +125,21 @@
 @keyframes hapticFlash {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .path-segment {
+    height: 10px; /* 在移动端进一步增加线条粗细 */
+    border-radius: 5px;
+  }
+  
+  .touch-indicator {
+    width: 32px; /* 在移动端进一步增大触摸指示器 */
+    height: 32px;
+  }
+  
+  .selected-block {
+    border-width: 4px; /* 增加边框粗细，提高可见性 */
+  }
 }

@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
-import "../../styles/ui/dialog.css";
-import Button from "./button";
+import React from 'react';
+import { Dialog as AntDialog } from 'antd-mobile';
+import './dialog.css';
+import Button from './button';
 
 interface DialogProps {
   title: string;
@@ -19,56 +20,70 @@ const Dialog: React.FC<DialogProps> = ({
   actions,
   className = "",
 }) => {
-  const [closing, setClosing] = useState(false);
-  const dialogRef = useRef<HTMLDivElement>(null);
-
-  // 处理关闭动画
-  const handleClose = () => {
-    setClosing(true);
-    setTimeout(() => {
-      setClosing(false);
-      onClose();
-    }, 200);
-  };
-
-  // 处理点击背景关闭
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (dialogRef.current && !dialogRef.current.contains(e.target as Node)) {
-      handleClose();
-    }
-  };
-
-  if (!isOpen && !closing) return null;
-
+  // 使用Ant Design Mobile的Dialog组件
   return (
-    <div 
-      className={`wx-dialog-backdrop ${closing ? "closing" : ""}`}
-      onClick={handleBackdropClick}
-    >
-      <div 
-        ref={dialogRef}
-        className={`wx-dialog ${closing ? "closing" : ""} ${className}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="wx-dialog-header">
-          <h3 className="wx-dialog-title">{title}</h3>
-          <button className="wx-dialog-close" onClick={handleClose}>
-            ×
-          </button>
-        </div>
-        
-        <div className="wx-dialog-content">
-          {children}
-        </div>
-        
-        {actions && (
-          <div className="wx-dialog-actions">
-            {actions}
-          </div>
-        )}
-      </div>
-    </div>
+    <>
+      {isOpen && (
+        <AntDialog
+          visible={isOpen}
+          title={title}
+          content={
+            <div className="wx-dialog-content">
+              {children}
+            </div>
+          }
+          closeOnAction
+          onClose={onClose}
+          actions={
+            actions || [
+              {
+                key: 'close',
+                text: '关闭',
+                onClick: onClose
+              }
+            ]
+          }
+          className={`wx-dialog ${className}`}
+        />
+      )}
+    </>
   );
+};
+
+// 创建一个对话框的静态方法，用于快速显示确认对话框
+Dialog.confirm = (props: {
+  title: string;
+  content: React.ReactNode;
+  onConfirm: () => void;
+  onCancel?: () => void;
+  confirmText?: string;
+  cancelText?: string;
+}) => {
+  return AntDialog.confirm({
+    title: props.title,
+    content: props.content,
+    confirmText: props.confirmText || '确认',
+    cancelText: props.cancelText || '取消',
+    onConfirm: props.onConfirm,
+    onCancel: props.onCancel,
+    className: 'wx-dialog-confirm'
+  });
+};
+
+// 创建一个对话框的静态方法，用于快速显示警告对话框
+Dialog.alert = (props: {
+  title: string;
+  content: React.ReactNode;
+  onConfirm?: () => void;
+  confirmText?: string;
+}) => {
+  return AntDialog.alert({
+    title: props.title,
+    content: props.content,
+    confirmText: props.confirmText || '确定',
+    onConfirm: props.onConfirm,
+    className: 'wx-dialog-alert'
+  });
 };
 
 export default Dialog;

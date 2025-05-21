@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
-import "../../styles/ui/dropdown-menu.css";
+import React from 'react';
+import { Dropdown, Button, Space } from 'antd-mobile';
+import './dropdown-menu.css';
 
-interface DropdownMenuProps {
+export interface DropdownMenuProps {
   label: string;
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (value: string) => void;
+  options: { label: string; value: string | number }[];
+  value: string | number;
+  onChange: (value: string | number) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 const DropdownMenu: React.FC<DropdownMenuProps> = ({
@@ -15,63 +17,49 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
   value,
   onChange,
   className = "",
+  disabled = false,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // 将选项转换为Ant Design Mobile Dropdown需要的格式
+  const dropdownOptions = options.map(option => ({
+    key: option.value.toString(),
+    text: option.label,
+  }));
 
-  // 获取当前选中选项的标签
-  const selectedLabel = options.find(option => option.value === value)?.label || "";
-
-  // 处理点击外部关闭下拉菜单
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("touchstart", handleClickOutside);
-    
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("touchstart", handleClickOutside);
-    };
-  }, []);
-
-  // 处理选项选择
-  const handleOptionSelect = (optionValue: string) => {
-    onChange(optionValue);
-    setIsOpen(false);
-  };
+  // 找到当前选中的选项标签
+  const selectedLabel = options.find(option => option.value === value)?.label || label;
 
   return (
-    <div className={`wx-dropdown-container ${className}`} ref={dropdownRef}>
-      {label && <div className="wx-dropdown-label">{label}</div>}
-      
-      <div 
-        className={`wx-dropdown-selector ${isOpen ? "active" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <span className="wx-dropdown-selected">{selectedLabel}</span>
-        <span className={`wx-dropdown-arrow ${isOpen ? "up" : "down"}`}>
-          {isOpen ? "▲" : "▼"}
-        </span>
-      </div>
-      
-      {isOpen && (
-        <div className="wx-dropdown-options">
-          {options.map((option) => (
-            <div
-              key={option.value}
-              className={`wx-dropdown-option ${option.value === value ? "selected" : ""}`}
-              onClick={() => handleOptionSelect(option.value)}
-            >
-              {option.label}
+    <div className={`wx-dropdown-container ${className}`}>
+      <Dropdown>
+        <Dropdown.Item
+          key="dropdown-item"
+          title={
+            <div className="wx-dropdown-label">
+              <span>{label}</span>
+              <span className="wx-dropdown-selected">{selectedLabel}</span>
             </div>
-          ))}
-        </div>
-      )}
+          }
+          disabled={disabled}
+        >
+          <div className="wx-dropdown-content">
+            <Space direction="vertical" block>
+              {options.map(option => (
+                <Button
+                  key={option.value.toString()}
+                  fill="none"
+                  block
+                  className={`wx-dropdown-option ${value === option.value ? 'selected' : ''}`}
+                  onClick={() => {
+                    onChange(option.value);
+                  }}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </Space>
+          </div>
+        </Dropdown.Item>
+      </Dropdown>
     </div>
   );
 };
