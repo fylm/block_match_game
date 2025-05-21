@@ -1,6 +1,6 @@
-import React from 'react';
-import { Swiper, Toast, SpinLoading } from 'antd-mobile';
+import React, { useState, useEffect, useRef } from 'react';
 import '../../styles/core/SwipeConnector.css';
+import { Toast } from 'antd-mobile';
 
 interface SwipeConnectorProps {
   rows: number;
@@ -24,16 +24,24 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
   specialBlocks = []
 }) => {
   // 当前路径状态
-  const [currentPath, setCurrentPath] = React.useState<{row: number, col: number}[]>([]);
+  const [currentPath, setCurrentPath] = useState<{row: number, col: number}[]>([]);
   // 触摸状态
-  const [isTouching, setIsTouching] = React.useState(false);
+  const [isTouching, setIsTouching] = useState(false);
   // 当前触摸位置（用于绘制指示器）
-  const [touchPosition, setTouchPosition] = React.useState<{x: number, y: number} | null>(null);
+  const [touchPosition, setTouchPosition] = useState<{x: number, y: number} | null>(null);
   // 是否显示错误提示
-  const [showError, setShowError] = React.useState(false);
+  const [showError, setShowError] = useState(false);
   
   // 引用容器元素
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  // 设置CSS变量用于响应式布局
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.style.setProperty('--rows', rows.toString());
+      containerRef.current.style.setProperty('--cols', cols.toString());
+    }
+  }, [rows, cols]);
   
   // 处理触摸开始
   const handleTouchStart = (e: React.TouchEvent, row: number, col: number) => {
@@ -79,8 +87,8 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     });
     
     // 计算当前触摸的方块坐标
-    const col = Math.floor((touch.clientX - rect.left) / blockSize);
-    const row = Math.floor((touch.clientY - rect.top) / blockSize);
+    const col = Math.floor((touch.clientX - rect.left) / (rect.width / cols));
+    const row = Math.floor((touch.clientY - rect.top) / (rect.height / rows));
     
     // 确保坐标在有效范围内
     if (row >= 0 && row < rows && col >= 0 && col < cols) {
@@ -206,10 +214,10 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
       const endBlock = currentPath[index + 1];
       
       // 计算线段起点和终点（方块中心）
-      const startX = (startBlock.col + 0.5) * blockSize;
-      const startY = (startBlock.row + 0.5) * blockSize;
-      const endX = (endBlock.col + 0.5) * blockSize;
-      const endY = (endBlock.row + 0.5) * blockSize;
+      const startX = (startBlock.col + 0.5) * (100 / cols);
+      const startY = (startBlock.row + 0.5) * (100 / rows);
+      const endX = (endBlock.col + 0.5) * (100 / cols);
+      const endY = (endBlock.row + 0.5) * (100 / rows);
       
       // 计算线段长度和角度
       const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
@@ -223,9 +231,9 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
           key={`segment-${index}`}
           className={`path-segment ${showError ? 'error' : ''}`}
           style={{
-            left: `${startX}px`,
-            top: `${startY}px`,
-            width: `${length}px`,
+            left: `${startX}%`,
+            top: `${startY}%`,
+            width: `${length}%`,
             transform: `rotate(${angle}deg)`,
             backgroundColor: color,
             boxShadow: `0 0 8px ${color}`
@@ -264,10 +272,10 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
         key={`selected-${index}`}
         className={`selected-block ${showError ? 'error' : ''}`}
         style={{
-          left: `${block.col * blockSize}px`,
-          top: `${block.row * blockSize}px`,
-          width: `${blockSize}px`,
-          height: `${blockSize}px`,
+          left: `${block.col * (100 / cols)}%`,
+          top: `${block.row * (100 / rows)}%`,
+          width: `${100 / cols}%`,
+          height: `${100 / rows}%`,
           borderColor: blockColors[block.row][block.col]
         }}
       />
@@ -280,7 +288,7 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     
     return (
       <div className="swipe-connector-loading">
-        <SpinLoading color='primary' />
+        <div className="loading-spinner"></div>
       </div>
     );
   };
@@ -289,10 +297,6 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
     <div 
       ref={containerRef}
       className="swipe-connector"
-      style={{
-        width: `${cols * blockSize}px`,
-        height: `${rows * blockSize}px`
-      }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
@@ -311,10 +315,6 @@ const SwipeConnector: React.FC<SwipeConnectorProps> = ({
               <div
                 key={`touch-${rowIndex}-${colIndex}`}
                 className="touch-area"
-                style={{
-                  width: `${blockSize}px`,
-                  height: `${blockSize}px`
-                }}
                 onTouchStart={(e) => handleTouchStart(e, rowIndex, colIndex)}
               />
             ))}

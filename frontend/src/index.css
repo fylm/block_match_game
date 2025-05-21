@@ -1,3 +1,15 @@
+/* 全局样式优化 - 移动端友好设计 */
+:root {
+  --primary-color: #4a90e2;
+  --secondary-color: #f8f9fa;
+  --accent-color: #e67e22;
+  --text-color: #333;
+  --light-text: #666;
+  --border-radius: 12px;
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,22 +17,142 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #282c34;
+  background-color: #f0f2f5;
+  color: var(--text-color);
+  touch-action: manipulation;
+  overflow-x: hidden;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
-}
-
+/* 移动端优化 */
 * {
+  -webkit-tap-highlight-color: transparent;
   box-sizing: border-box;
 }
 
+/* 动画效果 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* 分数变化动画 */
+.score-change {
+  animation: scoreChange 0.5s ease;
+}
+
+@keyframes scoreChange {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); color: #ff9500; }
+  100% { transform: scale(1); }
+}
+
+/* 按钮样式优化 */
 button {
   cursor: pointer;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 12px 16px;
+  transition: var(--transition);
+  background-color: var(--primary-color);
+  color: white;
+  box-shadow: var(--shadow);
+  outline: none;
+}
+
+button:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* 容器样式 */
+.container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  button {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  
+  .container {
+    padding: 12px;
+  }
+}
+
+/* 加载动画 */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Toast 样式优化 */
+.adm-toast-main {
+  padding: 12px 16px !important;
+  border-radius: var(--border-radius) !important;
+  background-color: rgba(0, 0, 0, 0.75) !important;
+  font-weight: 500 !important;
+}
+
+/* 特殊图标动画 */
+.bomb-icon {
+  animation: bombPulse 2s infinite;
+}
+
+.rainbow-icon {
+  animation: rainbowPulse 3s infinite;
+}
+
+.line-icon {
+  animation: linePulse 1.5s infinite;
+}
+
+@keyframes bombPulse {
+  0% { transform: translate(-50%, -50%) scale(1); }
+  10% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+  20% { transform: translate(-50%, -50%) scale(1) rotate(-5deg); }
+  30% { transform: translate(-50%, -50%) scale(1.1) rotate(5deg); }
+  40% { transform: translate(-50%, -50%) scale(1); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes rainbowPulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+@keyframes linePulse {
+  0% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
+  50% { transform: translate(-50%, -50%) scale(1.2); filter: brightness(1.5) drop-shadow(0 0 5px rgba(255, 255, 0, 0.7)); }
+  100% { transform: translate(-50%, -50%) scale(1); filter: brightness(1); }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/GameBoard.css';
 import SwipeConnector from './core/SwipeConnector';
+import { Toast } from 'antd-mobile';
 
 interface GameBoardProps {
   rows: number;
@@ -16,7 +17,12 @@ interface Block {
   selected: boolean;
 }
 
-const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEnergyChange }) => {
+const GameBoard: React.FC<GameBoardProps> = ({ 
+  rows = 8, 
+  cols = 8, 
+  onScoreChange, 
+  onEnergyChange 
+}) => {
   const [blocks, setBlocks] = useState<Block[][]>([]);
   const [score, setScore] = useState<number>(0);
   const [moves, setMoves] = useState<number>(20);
@@ -28,12 +34,20 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
   const [blockColors, setBlockColors] = useState<string[][]>([]);
   const [specialBlocks, setSpecialBlocks] = useState<{row: number, col: number, type: string}[]>([]);
   const [showHapticFeedback, setShowHapticFeedback] = useState<boolean>(false);
+  const [isAnimating, setIsAnimating] = useState<boolean>(false);
   
   const boardRef = useRef<HTMLDivElement>(null);
   const blockSize = useRef<number>(60); // 默认方块大小，会根据屏幕自适应调整
 
-  // 颜色列表
-  const colors = ['#FF5252', '#4CAF50', '#2196F3', '#FFC107', '#9C27B0', '#00BCD4'];
+  // 颜色列表 - 优化后的色彩方案，更协调且减少视觉疲劳
+  const colors = [
+    '#FF6B6B', // 柔和红
+    '#4ECDC4', // 薄荷绿
+    '#45B7D1', // 天蓝
+    '#FFC857', // 温暖黄
+    '#A882DD', // 淡紫
+    '#FF9A76'  // 珊瑚橙
+  ];
   
   // 初始化游戏板
   useEffect(() => {
@@ -42,14 +56,26 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     // 计算适合屏幕的方块大小
     const updateBlockSize = () => {
       if (boardRef.current) {
-        const boardWidth = boardRef.current.clientWidth;
-        const calculatedSize = Math.floor(boardWidth / cols);
+        const boardWidth = boardRef.current.clientWidth - 24; // 减去内边距
+        const calculatedSize = Math.floor((boardWidth - (cols - 1) * 8) / cols); // 考虑间隙
         blockSize.current = calculatedSize;
       }
     };
     
     updateBlockSize();
     window.addEventListener('resize', updateBlockSize);
+    
+    // 添加新手引导
+    if (!localStorage.getItem('gameIntroShown')) {
+      setTimeout(() => {
+        Toast.show({
+          content: '滑动连接3个或更多相同颜色的方块来消除它们',
+          position: 'center',
+          duration: 3000,
+        });
+        localStorage.setItem('gameIntroShown', 'true');
+      }, 1000);
+    }
     
     return () => {
       window.removeEventListener('resize', updateBlockSize);
@@ -103,6 +129,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     setCombo(0);
     setGameOver(false);
     setSelectedBlocks([]);
+    setIsSwipeEnabled(true);
+    setIsAnimating(false);
   };
 
   // 创建随机方块
@@ -122,7 +150,10 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
 
   // 处理滑动路径完成
   const handlePathComplete = (path: {row: number, col: number}[]) => {
-    if (gameOver || moves <= 0 || path.length < 3) return;
+    if (gameOver || moves <= 0 || path.length < 3 || isAnimating) return;
+    
+    // 设置动画状态，防止重复触发
+    setIsAnimating(true);
     
     // 触发触感反馈
     triggerHapticFeedback();
@@ -130,10 +161,19 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     // 更新选中的方块
     setSelectedBlocks(path);
     
+    // 显示连击提示
+    if (combo > 0) {
+      Toast.show({
+        content: `${combo + 1}连击！`,
+        position: 'center',
+        duration: 1000,
+      });
+    }
+    
     // 延迟消除，让玩家看到连线效果
     setTimeout(() => {
       eliminateBlocks(path);
-    }, 300);
+    }, 500);
   };
 
   // 触发触感反馈
@@ -152,6 +192,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
   const eliminateBlocks = (path: {row: number, col: number}[]) => {
     if (path.length < 3) {
       setSelectedBlocks([]);
+      setIsAnimating(false);
       return;
     }
     
@@ -160,7 +201,14 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     const comboMultiplier = combo > 0 ? combo * 0.5 + 1 : 1;
     const newScore = score + Math.floor(baseScore * comboMultiplier);
     
-    // 更新分数
+    // 更新分数 - 添加动画效果
+    const scoreElement = document.querySelector('.score span');
+    if (scoreElement) {
+      scoreElement.classList.add('score-change');
+      setTimeout(() => {
+        scoreElement.classList.remove('score-change');
+      }, 500);
+    }
     setScore(newScore);
     
     // 更新能量
@@ -199,6 +247,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
             }
           }
         }
+        
+        // 显示炸弹效果提示
+        Toast.show({
+          content: '💣 爆炸！',
+          position: 'center',
+          duration: 1000,
+        });
       } else if (block.type === 'line') {
         // 直线效果：消除同一行或列的方块
         for (let i = 0; i < rows; i++) {
@@ -231,6 +286,13 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
             }
           }
         }
+        
+        // 显示直线效果提示
+        Toast.show({
+          content: '⚡ 闪电清除！',
+          position: 'center',
+          duration: 1000,
+        });
       }
       
       // 重新生成被消除的方块
@@ -264,14 +326,29 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     
     // 重置选择
     setSelectedBlocks([]);
+    
+    // 延迟重置动画状态，确保动画有足够时间播放
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 300);
   };
 
   // 使用能量爆发
   const useEnergyBurst = () => {
-    if (energy < 100) return;
+    if (energy < 100 || isAnimating) return;
+    
+    // 设置动画状态
+    setIsAnimating(true);
     
     // 触发触感反馈
     triggerHapticFeedback();
+    
+    // 显示能量爆发效果提示
+    Toast.show({
+      content: '⚡⚡⚡ 能量爆发！',
+      position: 'center',
+      duration: 1500,
+    });
     
     // 随机消除一半的方块
     const newBlocks = [...blocks];
@@ -312,37 +389,56 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
     
     // 重置能量
     setEnergy(0);
+    
+    // 延迟重置动画状态
+    setTimeout(() => {
+      setIsAnimating(false);
+    }, 800);
   };
 
   // 重新开始游戏
   const restartGame = () => {
+    // 显示重新开始提示
+    Toast.show({
+      content: '游戏重新开始！',
+      position: 'center',
+      duration: 1000,
+    });
+    
     initializeBoard();
-    setIsSwipeEnabled(true);
   };
 
   // 渲染方块
   const renderBlock = (block: Block, row: number, col: number) => {
     let icon = '';
+    let iconClass = '';
     
     if (block.type === 'bomb') {
       icon = '💣';
+      iconClass = 'bomb-icon';
     } else if (block.type === 'rainbow') {
       icon = '🌈';
+      iconClass = 'rainbow-icon';
     } else if (block.type === 'line') {
       icon = '⚡';
+      iconClass = 'line-icon';
     }
+    
+    const isSelected = selectedBlocks.some(b => b.row === row && b.col === col);
     
     return (
       <div 
         key={`${row}-${col}`}
-        className={`block ${block.selected ? 'selected' : ''}`}
+        className={`block ${isSelected ? 'selected' : ''}`}
         style={{ 
           backgroundColor: block.color,
           width: `${blockSize.current}px`,
           height: `${blockSize.current}px`
         }}
+        data-row={row}
+        data-col={col}
       >
-        {icon && <span className="special-icon">{icon}</span>}
+        {icon && <span className={`special-icon ${iconClass}`}>{icon}</span>}
       </div>
     );
   };
@@ -350,9 +446,18 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
   return (
     <div className="game-container">
       <div className="game-info">
-        <div className="score">分数: {score}</div>
-        <div className="moves">步数: {moves}</div>
-        <div className="combo">连击: {combo}x</div>
+        <div className="score">
+          分数
+          <span>{score}</span>
+        </div>
+        <div className="moves">
+          步数
+          <span>{moves}</span>
+        </div>
+        <div className="combo">
+          连击
+          <span>{combo}x</span>
+        </div>
       </div>
       
       <div className="energy-bar-container">
@@ -363,7 +468,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
         <button 
           className={`energy-burst-button ${energy < 100 ? 'disabled' : ''}`}
           onClick={useEnergyBurst}
-          disabled={energy < 100}
+          disabled={energy < 100 || isAnimating}
         >
           能量爆发!
         </button>
@@ -373,8 +478,8 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
         ref={boardRef}
         className="game-board"
         style={{ 
-          width: `${cols * blockSize.current}px`,
-          height: `${rows * blockSize.current}px`
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`
         }}
       >
         {/* 渲染方块 */}
@@ -390,7 +495,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
           cols={cols}
           blockSize={blockSize.current}
           onPathComplete={handlePathComplete}
-          isEnabled={isSwipeEnabled && !gameOver}
+          isEnabled={isSwipeEnabled && !gameOver && !isAnimating}
           minPathLength={3}
           blockColors={blockColors}
           specialBlocks={specialBlocks}
@@ -401,6 +506,7 @@ const GameBoard: React.FC<GameBoardProps> = ({ rows, cols, onScoreChange, onEner
         <button 
           className="control-button"
           onClick={restartGame}
+          disabled={isAnimating}
         >
           重新开始
         </button>
