@@ -528,6 +528,10 @@ const GameBoard: React.FC<GameBoardProps> = ({
 
       <div 
         className="game-board"
+        style={{ 
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+          gridTemplateRows: `repeat(${rows}, 1fr)`
+        }}
         ref={boardRef}
       >
         {blocks.map((row, rowIndex) => (

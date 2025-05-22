@@ -166,7 +166,11 @@
 }
 
 .nav-menu-item.active .nav-icon {
-  fill: white;
+  fill: white !important;
+}
+/* 特别处理设置图标 */
+.nav-menu-item.active .settings-icon {
+  fill: white !important;
 }
 
 .nav-icon {
